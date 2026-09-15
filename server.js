@@ -17,6 +17,7 @@ app.use(express.static(__dirname));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Supabase Setup
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
@@ -200,8 +201,12 @@ app.get('/api/hotels/search', async (req, res) => {
     }
 });
 
-const PORT = 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 LuxeStay Backend API is running!`);
-    console.log(`👉 Click here to test: http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🚀 LuxeStay Backend API is running!`);
+        console.log(`👉 Click here to test: http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
