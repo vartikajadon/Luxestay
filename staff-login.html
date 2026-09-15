@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeStay - Staff Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" type="module"></script>
+</head>
+<body>
+    <div class="landing-container login-page">
+        <header class="header login-header">
+            <a href="index.html" class="back-btn"><i class="ph ph-arrow-left"></i> Home</a>
+        </header>
+
+        <main class="main-content login-content-area">
+            <div class="login-card">
+                <div class="brand login-brand">
+                    <img src="public/logo.png" alt="LuxeStay Logo" class="logo-small">
+                    <h1 class="app-name-small">LuxeStay</h1>
+                </div>
+
+                <div class="login-form">
+                    <h2 style="font-family: 'Cinzel', serif; color: #D4AF37;">Staff Portal</h2>
+                    <p class="instruction">Enter your staff credentials to access operational tools.</p>
+                    
+                    <div class="input-group">
+                        <i class="ph ph-identification-card"></i>
+                        <input type="text" id="email-input" placeholder="Staff ID" required>
+                    </div>
+
+                    <div class="input-group">
+                        <i class="ph ph-lock"></i>
+                        <input type="password" id="password-input" placeholder="Password" required>
+                    </div>
+
+                    <p class="error-msg" id="auth-error"></p>
+
+                    <button class="login-btn action-btn" id="login-btn">
+                        <span class="btn-text">Staff Sign-In</span>
+                        <i class="ph ph-key"></i>
+                    </button>
+                    
+                    <p class="resend-text" style="margin-top: 20px;">New Staff Member? <a href="staff-signup.html" style="color: #D4AF37;">Join the Team</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="management-auth.js" type="module"></script>
+</body>
+</html>

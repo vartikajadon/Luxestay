@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Bookings - LuxeStay</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <style>
+        .bookings-container {
+            padding: 120px 24px 60px;
+            max-width: 1100px;
+            margin: 0 auto;
+            min-height: 85vh;
+        }
+        .bookings-header { margin-bottom: 50px; text-align: center; }
+        
+        .bookings-list { display: grid; gap: 30px; }
+
+        /* Timeline Card Design */
+        .timeline-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 20px;
+            display: flex;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .timeline-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: #D4AF37;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-image-section {
+            width: 300px;
+            height: 220px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .card-image-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            z-index: 2;
+        }
+
+        .status-upcoming { background: rgba(212, 175, 55, 0.9); color: #07101E; }
+        .status-active { background: #4CAF50; color: #fff; }
+        .status-completed { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+        .card-details-section {
+            padding: 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .booking-id {
+            font-size: 0.7rem;
+            color: #D4AF37;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .timeline-card h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .itinerary-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+
+        .meta-item i { color: #D4AF37; font-size: 1.1rem; }
+
+        .card-footer-section {
+            padding: 30px;
+            border-left: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            min-width: 180px;
+            background: rgba(255,255,255,0.01);
+        }
+
+        .price-label { font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 5px; }
+        .price-value { font-size: 1.8rem; font-weight: 700; color: #D4AF37; }
+
+        @media (max-width: 900px) {
+            .timeline-card { flex-direction: column; }
+            .card-image-section { width: 100%; height: 200px; }
+            .card-footer-section { border-left: none; border-top: 1px solid rgba(255,255,255,0.05); align-items: flex-start; padding: 20px 30px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-brand">
+            <a href="index.html"><img src="public/logo.png" alt="LuxeStay" class="nav-logo"></a>
+        </div>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="btn-primary">Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="bookings-container">
+        <div class="bookings-header">
+            <h1 class="section-title">My Itinerary</h1>
+            <p class="section-text">Your luxury timeline with LuxeStay.</p>
+        </div>
+
+        <div id="bookings-list" class="bookings-list">
+            <!-- Dynamic Injection -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const list = document.getElementById('bookings-list');
+            const bookings = await LuxeDB.getBookings();
+
+            if (!bookings || bookings.length === 0) {
+                list.innerHTML = `<div class="empty-bookings" style="text-align:center; padding:100px;"><i class="ph ph-calendar-x" style="font-size:4rem; color:rgba(212,175,55,0.2);"></i><h3>No Stays Scheduled</h3><p>Your luxury story begins when you make your first reservation.</p><a href="index.html" class="btn-primary" style="display:inline-block; margin-top:20px;">Explore Properties</a></div>`;
+                return;
+            }
+
+            const now = new Date();
+
+            bookings.forEach(b => {
+                const checkIn = new Date(b.check_in);
+                const checkOut = new Date(b.check_out);
+                
+                let status = 'Upcoming';
+                let statusClass = 'status-upcoming';
+
+                if (now >= checkIn && now <= checkOut) {
+                    status = 'Active Stay';
+                    statusClass = 'status-active';
+                } else if (now > checkOut) {
+                    status = 'Completed';
+                    statusClass = 'status-completed';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'timeline-card';
+                card.innerHTML = `
+                    <div class="card-image-section">
+                        <span class="status-badge ${statusClass}">${status}</span>
+                        <img src="${b.hotel_image || 'https://images.unsplash.com/photo-1542314831-c6a4d27ce6a2?q=80&w=800'}" alt="${b.hotel_name}">
+                    </div>
+                    <div class="card-details-section">
+                        <span class="booking-id">BOOKING ID: ${b.id.slice(0, 8).toUpperCase()}</span>
+                        <h3>${b.hotel_name}</h3>
+                        <div class="itinerary-meta">
+                            <div class="meta-item"><i class="ph ph-bed"></i> ${b.room_name}</div>
+                            <div class="meta-item"><i class="ph ph-users"></i> ${b.guests} Guests</div>
+                            <div class="meta-item"><i class="ph ph-calendar-check"></i> ${b.check_in}</div>
+                            <div class="meta-item"><i class="ph ph-calendar-x"></i> ${b.check_out}</div>
+                        </div>
+                    </div>
+                    <div class="card-footer-section">
+                        <span class="price-label">Total Investment</span>
+                        <span class="price-value">$${b.total_price}</span>
+                        <a href="dashboard.html" class="btn-text" style="margin-top:15px; color:#D4AF37; text-decoration:none; font-size:0.8rem; font-weight:700;">Manage Stay <i class="ph ph-arrow-right"></i></a>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        });
+    </script>
+</body>
+</html>

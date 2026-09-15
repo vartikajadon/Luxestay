@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeStay - Secure Entrance</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#D4AF37',
+                        luxe: '#07101E',
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        jakarta: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .input-luxe {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-luxe:focus {
+            border-color: #D4AF37;
+            background: rgba(255, 255, 255, 0.08);
+            outline: none;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+        body {
+            background: radial-gradient(circle at center, #0B1629 0%, #040A14 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .input-luxe {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: #07101E;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .input-luxe:focus {
+            border-color: #D4AF37;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+        .label-luxe {
+            position: absolute;
+            left: 1.25rem;
+            top: 1.1rem;
+            color: #64748b;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 10;
+        }
+        /* Elevate label on focus or when input has content */
+        .input-luxe:focus + .label-luxe,
+        .input-luxe:not(:placeholder-shown) + .label-luxe {
+            top: -0.7rem;
+            left: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #D4AF37;
+            background: #0B1629;
+            padding: 0 8px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="font-jakarta text-white">
+
+    <!-- Ambient background shapes -->
+    <div class="absolute top-1/4 -left-20 w-80 h-80 bg-gold/10 rounded-full blur-[100px] animate-float"></div>
+    <div class="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] animate-float" style="animation-delay: -3s"></div>
+
+    <div class="w-full max-w-md px-6 relative z-10">
+        <!-- Logo Area -->
+        <div class="text-center mb-8">
+            <a href="index.html" class="inline-block mb-4">
+                <img src="public/logo.png" alt="LuxeStay" class="h-16 mx-auto hover:scale-105 transition-transform">
+            </a>
+            <h1 class="font-cinzel text-2xl tracking-widest text-gold">LUXESTAY</h1>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="glass-card rounded-3xl p-8 md:p-10">
+            <!-- Tabs -->
+            <div class="flex mb-8 bg-white/5 rounded-xl p-1">
+                <button id="tab-login" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-300 bg-gold text-luxe">Sign In</button>
+                <button id="tab-signup" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-300 text-gray-400 hover:text-white">Register</button>
+            </div>
+
+            <!-- Forms Container -->
+            <div id="auth-forms">
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-2">
+                    <div class="input-group">
+                        <input type="email" id="login-email" class="input-luxe w-full px-5 py-4 rounded-xl placeholder-transparent" placeholder=" ">
+                        <label class="label-luxe">Email Address</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="login-password" class="input-luxe w-full px-5 py-4 rounded-xl placeholder-transparent" placeholder=" ">
+                        <label class="label-luxe">Password</label>
+                    </div>
+                    <button type="submit" class="w-full bg-gold hover:bg-yellow-600 text-luxe font-bold py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                        <span class="btn-text">Unlock Experience</span>
+                        <i class="ph ph-key-return font-bold"></i>
+                    </button>
+                </form>
+
+                <!-- Signup Form (Hidden by default) -->
+                <form id="signup-form" class="space-y-2 hidden">
+                    <div class="input-group">
+                        <input type="text" id="signup-name" class="input-luxe w-full px-5 py-4 rounded-xl placeholder-transparent" placeholder=" ">
+                        <label class="label-luxe">Full Name</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="signup-email" class="input-luxe w-full px-5 py-4 rounded-xl placeholder-transparent" placeholder=" ">
+                        <label class="label-luxe">Email Address</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="signup-password" class="input-luxe w-full px-5 py-4 rounded-xl placeholder-transparent" placeholder=" ">
+                        <label class="label-luxe">Create Password</label>
+                    </div>
+                    <button type="submit" class="w-full bg-gold hover:bg-yellow-600 text-luxe font-bold py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                        <span class="btn-text">Begin Journey</span>
+                        <i class="ph ph-sparkle font-bold"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-500 uppercase tracking-widest leading-loose">
+                    Secured by Enterprise Encryption<br>
+                    &copy; 2026 LuxeStay International
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Module -->
+    <script type="module">
+        import { AuthService } from './auth-service.js';
+        import { Toast } from './toast.js';
+
+        const tabLogin = document.getElementById('tab-login');
+        const tabSignup = document.getElementById('tab-signup');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+
+        // Toggle Logic
+        tabLogin.onclick = () => {
+            tabLogin.classList.add('bg-gold', 'text-luxe');
+            tabLogin.classList.remove('text-muted-400');
+            tabSignup.classList.remove('bg-gold', 'text-luxe');
+            tabSignup.classList.add('text-muted-400');
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+        };
+
+        tabSignup.onclick = () => {
+            tabSignup.classList.add('bg-gold', 'text-luxe');
+            tabSignup.classList.remove('text-muted-400');
+            tabLogin.classList.remove('bg-gold', 'text-luxe');
+            tabLogin.classList.add('text-muted-400');
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        };
+
+        // Login Handler
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = loginForm.querySelector('button');
+            const btnText = btn.querySelector('.btn-text');
+
+            btn.disabled = true;
+            btnText.textContent = "Authenticating...";
+
+            const data = await AuthService.login(email, password);
+            if (data) {
+                // Direct Password Login Success
+                setTimeout(() => window.location.href = 'index.html', 1000);
+            } else {
+                btn.disabled = false;
+                btnText.textContent = "Unlock Experience";
+            }
+        };
+
+        // Signup Handler
+        signupForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const btn = signupForm.querySelector('button');
+            const btnText = btn.querySelector('.btn-text');
+
+            btn.disabled = true;
+            btnText.textContent = "Preparing Your Stay...";
+
+            const data = await AuthService.signUp(email, password, name);
+            if (data && data.pending) {
+                localStorage.setItem('pendingVerifyEmail', email);
+                Toast.show("Your residency request is being processed. Check your email.", "success");
+                setTimeout(() => window.location.href = 'verify.html', 1500);
+            } else {
+                btn.disabled = false;
+                btnText.textContent = "Begin Journey";
+            }
+        };
+    </script>
+</body>
+</html>

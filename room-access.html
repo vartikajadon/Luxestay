@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Room Control - LuxeStay</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" type="module"></script>
+    <script src="notifications.js" type="module"></script>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --gold: #D4AF37;
+            --bg-deep: #07101E;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #F8F9FA;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .smart-dashboard {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Left Side: Key Section */
+        .key-section {
+            flex: 0 0 350px;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            height: fit-content;
+        }
+
+        /* Right Side: Main Controls */
+        .controls-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .nfc-key {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(7, 16, 30, 0) 70%);
+            border: 2px solid var(--glass-border);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.05);
+        }
+
+        .nfc-key i {
+            font-size: 5rem;
+            color: var(--gold);
+            transition: all 0.5s ease;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3));
+        }
+
+        .nfc-key.unlocked {
+            border-color: #4caf50;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, rgba(7, 16, 30, 0) 70%);
+        }
+
+        .nfc-key.unlocked i {
+            color: #4caf50;
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 15px rgba(76, 175, 80, 0.4));
+        }
+
+        .unlock-progress {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 20px auto;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            background: var(--gold);
+            transition: width 1.5s linear;
+        }
+
+        /* Status Summary */
+        .status-summary {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-item label {
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .status-item span {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Grid Adjustment for No Scroll */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .control-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px; /* More compact */
+            transition: all 0.3s ease;
+            min-height: 200px; /* Reduced height */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .status-summary {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            backdrop-filter: blur(10px);
+            width: 100%;
+        }
+
+        .nfc-key {
+            width: 180px; /* Scaled down */
+            height: 180px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(7, 16, 30, 0) 70%);
+            border: 2px solid var(--glass-border);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .nfc-key i { font-size: 4rem; }
+
+        .emergency-btn {
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 1024px) {
+            .smart-dashboard {
+                flex-direction: column;
+                height: auto;
+                overflow: auto;
+                padding-top: 100px;
+            }
+            .key-section { flex: none; width: 100%; }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title i {
+            font-size: 1.5rem;
+            color: var(--gold);
+        }
+
+        .card-title h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        /* Custom Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--gold); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Range Sliders */
+        .control-range {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 20px 0;
+        }
+
+        .control-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--gold);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Mood Buttons */
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .mood-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 10px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .mood-btn.active {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* TV Controls */
+        .tv-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 15px;
+            border-radius: 12px;
+        }
+
+        .control-group i {
+            color: var(--gold);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Emergency Button */
+        .emergency-btn {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            margin-top: 60px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: #f44336;
+        }
+
+        /* Animations */
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spin { animation: spin 2s linear infinite; }
+
+        @keyframes pulse-gold { 0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } }
+        .pulse-gold { animation: pulse-gold 2s infinite; }
+
+        /* Responsive Mobile Layout */
+        @media (max-width: 768px) {
+            .smart-dashboard { padding: 100px 20px 100px; }
+            .controls-grid { grid-template-columns: 1fr; }
+            .status-summary { padding: 15px; }
+            .status-item span { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <!-- Sidebar (Standardized) -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="public/logo.png" alt="LuxeStay" style="height: 180px; width: auto;">
+            </div>
+            <nav class="sidebar-menu">
+                <a href="index.html" class="nav-item">
+                    <i class="ph ph-house"></i>
+                    <span>Home</span>
+                </a>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="ph ph-layout"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="services.html" class="nav-item">
+                    <i class="ph ph-bell-ringing"></i>
+                    <span>Services</span>
+                </a>
+                <a href="dining.html" class="nav-item">
+                    <i class="ph ph-fork-knife"></i>
+                    <span>Dining</span>
+                </a>
+                <a href="room-access.html" class="nav-item active">
+                    <i class="ph ph-key"></i>
+                    <span>Room Access</span>
+                </a>
+                <a href="billing.html" class="nav-item">
+                    <i class="ph ph-receipt"></i>
+                    <span>Billing</span>
+                </a>
+                <a href="checkout.html" class="nav-item">
+                    <i class="ph ph-door-open"></i>
+                    <span>Checkout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header" style="height: 100px; min-height: 100px; margin-bottom: 20px;">
+                <div class="header-content">
+                    <h1 class="section-title" style="margin: 0;">Smart Room Control</h1>
+                </div>
+            </header>
+            <section class="smart-dashboard" style="max-width: 1200px; margin: 0 auto; width: 100%;">
+            
+            <!-- Main Controls Panel -->
+            <div class="controls-content" style="width: 100%;">
+                <!-- Quick Status Summary -->
+                <section class="status-summary">
+                    <div class="status-item"><label>Temp</label><span id="stat-temp">22°C</span></div>
+                    <div class="status-item"><label>Lights</label><span id="stat-lights">OFF</span></div>
+                    <div class="status-item"><label>Curtains</label><span id="stat-curtains">CLOSED</span></div>
+                </section>
+
+                <!-- Controls Grid (2x2) -->
+                <section class="controls-grid">
+                    <!-- Lighting -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="ph-fill ph-lightbulb" id="light-icon"></i><h3>Lighting</h3></div>
+                            <label class="switch"><input type="checkbox" id="light-master-toggle"><span class="slider"></span></label>
+                        </div>
+                        <input type="range" class="control-range" id="light-brightness" min="0" max="100" value="70">
+                        <div class="mood-grid">
+                            <button class="mood-btn" onclick="setMood('Relax', this)">Relax</button>
+                            <button class="mood-btn" onclick="setMood('Work', this)">Work</button>
+                            <button class="mood-btn" onclick="setMood('Night', this)">Night</button>
+                        </div>
+                    </div>
+
+                    <!-- AC -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="ph-fill ph-wind" id="ac-icon"></i><h3>Air Conditioning</h3></div>
+                            <label class="switch"><input type="checkbox" id="ac-master-toggle"><span class="slider"></span></label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span id="temp-display" style="color: var(--gold); font-weight: 700;">22°C</span>
+                            <input type="range" class="control-range" id="ac-temp-slider" min="16" max="30" value="22" style="width: 60%;">
+                        </div>
+                        <div class="mood-grid">
+                            <button class="mood-btn active" onclick="setACMode('Cool', this)">Cool</button>
+                            <button class="mood-btn" onclick="setACMode('Heat', this)">Heat</button>
+                            <button class="mood-btn" onclick="setACMode('Fan', this)">Fan</button>
+                        </div>
+                    </div>
+
+                    <!-- TV -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="ph-fill ph-television"></i><h3>Smart TV</h3></div>
+                            <label class="switch"><input type="checkbox" id="tv-toggle"><span class="slider"></span></label>
+                        </div>
+                        <div class="tv-controls">
+                            <div class="control-group"><i class="ph ph-minus-circle" onclick="adjustTV('vol', -1)"></i><span>VOL</span><i class="ph ph-plus-circle" onclick="adjustTV('vol', 1)"></i></div>
+                            <div class="control-group"><i class="ph ph-caret-circle-left" onclick="adjustTV('ch', -1)"></i><span>CH</span><i class="ph ph-caret-circle-right" onclick="adjustTV('ch', 1)"></i></div>
+                        </div>
+                        <p id="tv-info" style="font-size: 0.7rem; color: var(--gold); margin-top: 10px; opacity: 0.8;">Power Off</p>
+                    </div>
+
+                    <!-- Curtains -->
+                    <div class="control-card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="ph-fill ph-columns"></i><h3>Windows</h3></div>
+                            <label class="switch"><input type="checkbox" id="curtain-toggle"><span class="slider"></span></label>
+                        </div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 5px; margin: 10px 0; overflow: hidden;">
+                            <div id="curtain-progress" style="width: 100%; height: 100%; background: var(--gold); transition: width 2s ease;"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { LuxeDB, supabase } from './supabase-config.js';
+        import { NotificationSystem } from './notifications.js';
+
+        // IoT State Management
+        const roomState = {
+            isLocked: true,
+            lights: { on: false, brightness: 70, mood: 'None' },
+            ac: { on: false, temp: 22, mode: 'Cool' },
+            tv: { on: false, vol: 15, ch: 102 },
+            curtains: { open: false },
+            dnd: false
+        };
+
+        // Expose functions to window for HTML onclick/onchange handlers
+        window.setMood = (mood, btn) => setMood(mood, btn);
+        window.setACMode = (mode, btn) => setACMode(mode, btn);
+        window.adjustTV = (type, amt) => adjustTV(type, amt);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initControls();
+            loadPersistedState();
+        });
+
+        function initControls() {
+            // Lights Toggle
+            const lightToggle = document.getElementById('light-master-toggle');
+            if (lightToggle) {
+                lightToggle.onchange = (e) => {
+                    roomState.lights.on = e.target.checked;
+                    updateLightUI();
+                };
+            }
+
+            // AC Toggle
+            const acToggle = document.getElementById('ac-master-toggle');
+            if (acToggle) {
+                acToggle.onchange = (e) => {
+                    roomState.ac.on = e.target.checked;
+                    updateACUI();
+                };
+            }
+
+            // AC Temp Slider
+            const tempSlider = document.getElementById('ac-temp-slider');
+            if (tempSlider) {
+                tempSlider.oninput = (e) => {
+                    roomState.ac.temp = e.target.value;
+                    document.getElementById('temp-display').textContent = `${e.target.value}°C`;
+                    document.getElementById('stat-temp').textContent = `${e.target.value}°C`;
+                };
+            }
+
+            // TV Toggle
+            const tvToggle = document.getElementById('tv-toggle');
+            if (tvToggle) {
+                tvToggle.onchange = (e) => {
+                    roomState.tv.on = e.target.checked;
+                    updateTVUI();
+                };
+            }
+
+            // Curtain Toggle
+            const curtainToggle = document.getElementById('curtain-toggle');
+            if (curtainToggle) {
+                curtainToggle.onchange = (e) => {
+                    roomState.curtains.open = e.target.checked;
+                    updateCurtainUI();
+                };
+            }
+
+        }
+
+        function updateLightUI() {
+            const icon = document.getElementById('light-icon');
+            const stat = document.getElementById('stat-lights');
+            if (roomState.lights.on) {
+                icon.style.color = '#D4AF37';
+                icon.style.filter = 'drop-shadow(0 0 8px #D4AF37)';
+                stat.textContent = 'ON';
+            } else {
+                icon.style.color = 'rgba(255,255,255,0.2)';
+                icon.style.filter = 'none';
+                stat.textContent = 'OFF';
+            }
+        }
+
+        function updateACUI() {
+            const icon = document.getElementById('ac-icon');
+            if (roomState.ac.on) {
+                icon.classList.add('spin');
+                icon.style.color = '#4fc3f7';
+            } else {
+                icon.classList.remove('spin');
+                icon.style.color = 'var(--gold)';
+            }
+        }
+
+        function updateTVUI() {
+            const info = document.getElementById('tv-info');
+            if (roomState.tv.on) {
+                info.textContent = `Streaming: Channel ${roomState.tv.ch} • Vol: ${roomState.tv.vol}`;
+                info.style.opacity = '1';
+            } else {
+                info.textContent = 'TV is currently powered off';
+                info.style.opacity = '0.5';
+            }
+        }
+
+        function updateCurtainUI() {
+            const progress = document.getElementById('curtain-progress');
+            const stat = document.getElementById('stat-curtains');
+            if (roomState.curtains.open) {
+                progress.style.width = '0%';
+                stat.textContent = 'OPEN';
+            } else {
+                progress.style.width = '100%';
+                stat.textContent = 'CLOSED';
+            }
+        }
+
+        function setMood(mood, btn) {
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            roomState.lights.on = true;
+            document.getElementById('light-master-toggle').checked = true;
+            roomState.lights.mood = mood;
+            
+            // Adjust light brightness based on selected mode
+            let brightness = 70;
+            if (mood === 'Relax') brightness = 35;
+            else if (mood === 'Work') brightness = 90;
+            else if (mood === 'Night') brightness = 10;
+            
+            roomState.lights.brightness = brightness;
+            const brightnessSlider = document.getElementById('light-brightness');
+            if (brightnessSlider) {
+                brightnessSlider.value = brightness;
+            }
+            
+            updateLightUI();
+            NotificationSystem.add(`Lighting set to ${mood} Mode 🕯️ (${brightness}% Brightness)`, 'access');
+        }
+
+        function setACMode(mode, btn) {
+            btn.parentElement.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            roomState.ac.mode = mode;
+            
+            // Adjust temperature based on selected mode
+            let temp = 22;
+            if (mode === 'Cool') temp = 18;
+            else if (mode === 'Heat') temp = 26;
+            else if (mode === 'Fan') temp = 23;
+            
+            roomState.ac.temp = temp;
+            
+            const tempSlider = document.getElementById('ac-temp-slider');
+            if (tempSlider) {
+                tempSlider.value = temp;
+            }
+            const tempDisplay = document.getElementById('temp-display');
+            if (tempDisplay) {
+                tempDisplay.textContent = `${temp}°C`;
+            }
+            const statTemp = document.getElementById('stat-temp');
+            if (statTemp) {
+                statTemp.textContent = `${temp}°C`;
+            }
+            
+            if (roomState.ac.on) {
+                NotificationSystem.add(`AC set to ${mode} Mode (${temp}°C) ❄️`, 'access');
+            } else {
+                NotificationSystem.add(`AC Preset updated to ${mode} (${temp}°C). Turn on AC to activate.`, 'access');
+            }
+        }
+
+        function adjustTV(type, amt) {
+            if(!roomState.tv.on) return;
+            if(type === 'vol') roomState.tv.vol = Math.max(0, Math.min(100, roomState.tv.vol + amt));
+            if(type === 'ch') roomState.tv.ch += amt;
+            updateTVUI();
+        }
+
+        async function loadPersistedState() {
+            const guestEmail = localStorage.getItem('guestEmail');
+            if(guestEmail) {
+                console.log("Syncing room state for:", guestEmail);
+            }
+        }
+    </script>
+</body>
+</html>

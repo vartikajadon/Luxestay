@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Experiences - LuxeStay</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <style>
+        .exp-container {
+            padding: 120px 24px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .exp-card {
+            background: #1A1A1A;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 0;
+            margin-bottom: 30px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (min-width: 768px) {
+            .exp-card { flex-direction: row; height: 350px; }
+            .exp-image { width: 50%; height: 100%; }
+            .exp-info { width: 50%; padding: 40px; }
+        }
+        .exp-image {
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+        }
+        .exp-info {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .exp-tag {
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            margin-bottom: 12px;
+        }
+        .exp-info h2 {
+            font-family: 'Cinzel', serif;
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        .exp-price {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .modal-content {
+            background: #1A1A1A;
+            border: 1px solid var(--accent-color);
+            width: 90%;
+            max-width: 500px;
+            margin: 10vh auto;
+            padding: 40px;
+            position: relative;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: var(--accent-color); margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase; }
+        .form-group input { width: 100%; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px; color: #fff; }
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-brand">
+            <a href="index.html"><img src="public/logo.png" alt="LuxeStay" class="nav-logo"></a>
+        </div>
+        <div class="nav-actions">
+            <a href="dashboard.html" class="btn-text" style="color: #fff; text-decoration: none;">Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="exp-container">
+        <h1 class="section-title">Luxury Experiences</h1>
+        
+        <div class="exp-card">
+            <div class="exp-image" style="background-image: url('https://images.unsplash.com/photo-1544161515-4ae6ce6db874?auto=format&fit=crop&q=80');"></div>
+            <div class="exp-info">
+                <span class="exp-tag">Wellness</span>
+                <h2>Jiva Spa Ritual</h2>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">An ancient Indian wellness treatment using essential oils and traditional techniques.</p>
+                <div class="exp-price">₹4,500 / session</div>
+                <button class="btn-primary" onclick="openBookingModal('Jiva Spa Ritual', 4500)">Book Now</button>
+            </div>
+        </div>
+
+        <div class="exp-card">
+            <div class="exp-image" style="background-image: url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80');"></div>
+            <div class="exp-info">
+                <span class="exp-tag">Dining</span>
+                <h2>Rooftop Gazebo Dinner</h2>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">Private romantic dinner under the stars with a curated 5-course menu.</p>
+                <div class="exp-price">₹8,000 / couple</div>
+                <button class="btn-primary" onclick="openBookingModal('Rooftop Gazebo Dinner', 8000)">Reserve Table</button>
+            </div>
+        </div>
+
+        <div class="exp-card">
+            <div class="exp-image" style="background-image: url('https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&q=80');"></div>
+            <div class="exp-info">
+                <span class="exp-tag">Tours</span>
+                <h2>Heritage City Walk</h2>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom: 20px;">Explore the historic monuments and hidden gems with our expert guide.</p>
+                <div class="exp-price">₹2,500 / person</div>
+                <button class="btn-primary" onclick="openBookingModal('Heritage City Walk', 2500)">Book Tour</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="color: var(--accent-color); font-family: 'Cinzel'; margin-bottom: 24px;">Reserve Experience</h2>
+            <form id="exp-form">
+                <input type="hidden" id="exp-type">
+                <input type="hidden" id="exp-price">
+                <div class="form-group">
+                    <label>Date & Time</label>
+                    <input type="datetime-local" id="exp-time" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Guests</label>
+                    <input type="number" id="exp-guests" value="1" min="1" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Confirm Reservation</button>
+                <button type="button" class="btn-text" onclick="closeModal()" style="width: 100%; margin-top: 15px; color: #fff;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="notifications.js"></script>
+    <script>
+        const modal = document.getElementById('booking-modal');
+        function openBookingModal(name, price) {
+            document.getElementById('exp-type').value = name;
+            document.getElementById('exp-price').value = price;
+            document.getElementById('modal-title').textContent = `Book ${name}`;
+            modal.style.display = 'block';
+        }
+        function closeModal() { modal.style.display = 'none'; }
+
+        document.getElementById('exp-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const type = document.getElementById('exp-type').value;
+            const price = parseFloat(document.getElementById('exp-price').value);
+            const time = document.getElementById('exp-time').value;
+            const guests = document.getElementById('exp-guests').value;
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Reserving...';
+            btn.disabled = true;
+
+            const result = await LuxeDB.saveServiceRequest({
+                type: `${type} (${guests} Guests)`,
+                category: 'experience',
+                price: price * parseInt(guests),
+                time: time,
+                note: `Reservation for ${guests} guests at ${time}`
+            });
+
+            if (result) {
+                NotificationSystem.add(`${type} reserved successfully! 🌟`, 'experience');
+                // Simulate points earned toast
+                const points = Math.floor((price * guests) / 10);
+                setTimeout(() => {
+                    NotificationSystem.add(`You earned ${points} LuxePoints! 🏆`, 'loyalty');
+                }, 1500);
+                closeModal();
+                setTimeout(() => window.location.href = 'dashboard.html', 3000);
+            } else {
+                NotificationSystem.showToast('Failed to reserve. Please try again.', 'error');
+            }
+            btn.innerHTML = 'Confirm Reservation';
+            btn.disabled = false;
+        };
+    </script>
+</body>
+</html>

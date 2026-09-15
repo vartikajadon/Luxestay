@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeStay - Admin Command Center</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" type="module"></script>
+    <script type="module">
+        import { LuxeDB } from './supabase-config.js';
+        
+        // Immediate Role-Based Access Control
+        (async () => {
+            const role = localStorage.getItem('userRole');
+            if (role !== 'admin') {
+                console.warn("Unauthorized access attempt redirected.");
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
+    <script src="notifications.js"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <img src="public/logo.png" alt="LuxeStay Logo" class="admin-logo">
+                <h3>LuxeStay Admin</h3>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" id="overviewBtn" class="nav-item active"><i class="ph-fill ph-chart-line-up"></i> Overview</a>
+                <a href="#" id="bookingsBtn" class="nav-item"><i class="ph ph-calendar-check"></i> Bookings</a>
+                <a href="#" id="guestProfilesBtn" class="nav-item"><i class="ph ph-users"></i> Guest Profiles</a>
+                <a href="#" id="serviceRequestsBtn" class="nav-item"><i class="ph ph-bell-ringing"></i> Service Requests</a>
+                <a href="#" id="menuManagementBtn" class="nav-item"><i class="ph ph-cooking-pot"></i> Menu Management</a>
+                <a href="#" id="staffManagementBtn" class="nav-item"><i class="ph ph-users-three"></i> Staff Management</a>
+                <a href="#" id="financeManagementBtn" class="nav-item"><i class="ph ph-chart-line-up"></i> Finance Management</a>
+                <a href="#" id="systemSettingsBtn" class="nav-item"><i class="ph ph-gear"></i> System Settings</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button onclick="LuxeDB.logout()" class="admin-logout-btn">
+                    <i class="ph ph-sign-out"></i>
+                    <span>System Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <h2>Operational Overview</h2>
+                    <p id="current-date">October 24, 2026 | 09:45 AM</p>
+                </div>
+                <div class="header-right" style="display:flex; gap:20px; align-items:center;">
+                    <select id="globalHotelSelect" style="background:rgba(255,255,255,0.05); border:1px solid rgba(212,175,55,0.3); padding:10px 20px; color:#fff; border-radius:12px; font-size:0.85rem; cursor:pointer; min-width:200px; outline:none; transition:all 0.3s ease;">
+                        <option value="">All Elite Properties</option>
+                    </select>
+                    <div class="admin-profile">
+                        <span id="admin-name">Administrator</span>
+                        <div class="admin-avatar">A</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Intelligence HUD -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon revenue"><i class="ph ph-currency-dollar"></i></div>
+                    <div class="stat-info">
+                        <span class="label">Total Revenue</span>
+                        <h3 id="totalRevenue">₹0</h3>
+                        <span class="trend up"><i class="ph ph-trend-up"></i> +12% this month</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon guests"><i class="ph ph-users-four"></i></div>
+                    <div class="stat-info">
+                        <span class="label">Active Residencies</span>
+                        <h3 id="activeResidences">0</h3>
+                        <span class="trend">92% Occupancy</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon services"><i class="ph ph-bell-ringing"></i></div>
+                    <div class="stat-info">
+                        <span class="label">Pending Services</span>
+                        <h3 id="pending-services">8</h3>
+                        <span class="trend alert">4 High Priority</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon rating"><i class="ph ph-star"></i></div>
+                    <div class="stat-info">
+                        <span class="label">Guest Satisfaction</span>
+                        <h3>4.9/5</h3>
+                        <span class="trend">Platinum Tier</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Activity Hub -->
+            <div class="activity-hub">
+                <!-- Recent Bookings Table -->
+                <div class="data-panel">
+                    <div class="panel-header">
+                        <h3>Recent Elite Bookings</h3>
+                        <button class="view-all">View All</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Guest</th>
+                                    <th>Property</th>
+                                    <th>Suite Tier</th>
+                                    <th>Check-in</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentBookings">
+                                <!-- Loaded via JS -->
+                                <tr><td colspan="5" style="text-align:center; padding:40px;"><i class="ph ph-spinner ph-spin"></i> Synchronizing data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Live Service Requests -->
+                <div class="data-panel side">
+                    <div class="panel-header">
+                        <h3>Live Service Requests</h3>
+                    </div>
+                    <div class="request-list" id="serviceRequests">
+                        <!-- Loaded via JS -->
+                        <p style="text-align:center; padding:20px; color:#B0B7C3;">Monitoring service channels...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Management Section (Hidden by default) -->
+            <section id="staff-management" class="data-panel" style="display: none; margin-top: 30px;">
+                <div class="panel-header">
+                    <h3>Staff Directory</h3>
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <!-- Global Select moved to header -->
+                        <button class="view-all" onclick="openAddStaffModal()">+ Add New Staff</button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Staff ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-table-body">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Residency Management Section (Hidden by default) -->
+            <section id="residency-management" class="data-panel" style="display: none; margin-top: 30px;">
+                <div class="panel-header">
+                    <h3>Elite Residency Directory</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Guest</th>
+                                <th>Property</th>
+                                <th>Suite</th>
+                                <th>Duration</th>
+                                <th>Revenue</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTable">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            </section>
+
+            <!-- Guest Profiles Management Section (Hidden by default) -->
+            <section id="guest-profiles-management" class="data-panel" style="display: none; margin-top: 30px;">
+                <div class="panel-header">
+                    <h3>Elite Guest Directory</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Registered At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guestTable">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Service Requests Management Section (Hidden by default) -->
+            <section id="service-requests-management" class="data-panel" style="display: none; margin-top: 30px;">
+                <div class="panel-header">
+                    <h3>Operational Service Stream</h3>
+                </div>
+                <div id="serviceRequestsContainer" class="service-requests-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding-top: 20px;">
+                    <!-- Loaded via JS -->
+                </div>
+            </section>
+
+            <!-- Menu Management Section (Hidden by default) -->
+            <section id="menu-management" class="data-panel" style="display: none; margin-top: 30px;">
+                <div class="panel-header">
+                    <h3>Epicurean Directory</h3>
+                    <button class="view-all" onclick="openAddMenuModal()">+ Add Menu Item</button>
+                </div>
+                
+                <div class="menu-admin-layout" style="display: grid; grid-template-columns: 240px 1fr; gap: 30px; padding-top: 20px;">
+                    <!-- Category Navigation Sidebar -->
+                    <aside class="menu-admin-nav" id="menuAdminNav" style="border-right: 1px solid rgba(255,255,255,0.05); padding-right: 20px;">
+                        <!-- Groups injected via JS -->
+                    </aside>
+
+                    <!-- Menu Grid Container -->
+                    <div id="menuContainer" class="menu-management-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+            </section>
+            <!-- Finance Management Section (Hidden by default) -->
+            <section id="finance-management" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon revenue"><i class="ph ph-buildings"></i></div>
+                        <div class="stat-info"><span class="label">Room Revenue</span><h3 id="roomRevenue">₹0</h3></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon services"><i class="ph ph-cooking-pot"></i></div>
+                        <div class="stat-info"><span class="label">Food Revenue</span><h3 id="foodRevenue">₹0</h3></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon rating"><i class="ph ph-bell-ringing"></i></div>
+                        <div class="stat-info"><span class="label">Service Revenue</span><h3 id="serviceRevenue">₹0</h3></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon revenue" style="background:rgba(212,175,55,0.1); color:#D4AF37;"><i class="ph ph-bank"></i></div>
+                        <div class="stat-info"><span class="label">Total Profit</span><h3 id="profit" style="color:#D4AF37;">₹0</h3></div>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-top: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-icon guests" style="background:rgba(76,175,80,0.1); color:#4CAF50;"><i class="ph ph-trend-up"></i></div>
+                        <div class="stat-info"><span class="label">Gross Revenue</span><h3 id="financeTotalRevenue">₹0</h3></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon rating" style="background:rgba(255,68,68,0.1); color:#ff4444;"><i class="ph ph-trend-down"></i></div>
+                        <div class="stat-info"><span class="label">Total Expenses</span><h3 id="totalExpenses" style="color:#ff4444;">₹0</h3></div>
+                    </div>
+                </div>
+
+                <div class="data-panel" style="margin-top: 30px;">
+                    <div class="panel-header">
+                        <h3>Unified Billing Directory</h3>
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <select id="dateFilter" style="background:rgba(255,255,255,0.1); border:1px solid rgba(212,175,55,0.2); padding:8px 15px; color:#000; border-radius:8px; font-size:0.85rem;">
+                                <option value="all">Global (All Time)</option>
+                                <option value="today">Today's Revenue</option>
+                                <option value="month">Monthly Overview</option>
+                            </select>
+                            <button class="view-all" onclick="exportFinanceCSV()" style="background:rgba(76,175,80,0.1); color:#4CAF50; border-color:rgba(76,175,80,0.3);"><i class="ph ph-file-csv"></i> Export CSV</button>
+                            <button class="view-all" onclick="openAddExpenseModal()">+ Record Expense</button>
+                        </div>
+                    </div>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Entity / Guest</th>
+                                <th>Stream</th>
+                                <th>Detail</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billingTable">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Visualization Hub -->
+                <div class="stats-grid" style="margin-top: 30px; grid-template-columns: repeat(3, 1fr);">
+                    <div class="data-panel" style="padding: 20px;">
+                        <h4 style="color:#D4AF37; margin-bottom:15px; font-size:0.9rem; text-transform:uppercase;">Revenue Streams</h4>
+                        <canvas id="revenueChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div class="data-panel" style="padding: 20px;">
+                        <h4 style="color:#D4AF37; margin-bottom:15px; font-size:0.9rem; text-transform:uppercase;">Category Breakdown</h4>
+                        <canvas id="categoryChart" style="max-height: 250px;"></canvas>
+                    </div>
+                    <div class="data-panel" style="padding: 20px;">
+                        <h4 style="color:#D4AF37; margin-bottom:15px; font-size:0.9rem; text-transform:uppercase;">Fiscal Health</h4>
+                        <canvas id="profitChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Growth Visualization Hub -->
+                <div class="data-panel" style="margin-top: 30px; padding: 30px;">
+                    <h4 style="color:#D4AF37; margin-bottom:25px; font-size:0.9rem; text-transform:uppercase;">Daily Revenue Growth Trend</h4>
+                    <canvas id="growthChart" style="max-height: 350px;"></canvas>
+                </div>
+            </section>
+
+            <!-- System Settings Section (Hidden by default) -->
+            <section id="system-settings" class="data-panel" style="display: none; margin-top: 30px;">
+                <div class="panel-header">
+                    <h3>Executive System Configuration</h3>
+                    <button class="view-all" id="saveSettingsBtn">Save Global Settings</button>
+                </div>
+                <div class="settings-form" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; padding-top: 20px;">
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Hotel Name</label>
+                        <input type="text" id="hotelName" placeholder="LuxeStay Signature" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Contact Number</label>
+                        <input type="text" id="contactNumber" placeholder="+91 98765 43210" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Support Email</label>
+                        <input type="email" id="email" placeholder="concierge@luxestay.com" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Property Address</label>
+                        <input type="text" id="address" placeholder="123 Elite Plaza, Mumbai" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Display Currency</label>
+                        <input type="text" id="currency" placeholder="INR" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Tax Percentage (%)</label>
+                        <input type="number" id="tax" placeholder="18" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Check-in Time</label>
+                        <input type="text" id="checkin" placeholder="02:00 PM" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #D4AF37; display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase;">Check-out Time</label>
+                        <input type="text" id="checkout" placeholder="12:00 PM" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.2); padding: 12px; color: #fff; border-radius: 8px;">
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="admin-dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

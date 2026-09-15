@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Invoice - LuxeStay Heritage</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2pdf Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" type="module"></script>
+    <script src="notifications.js" type="module"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --royal-blue: #0A192F;
+            --gold-accent: #D4AF37;
+            --text-dark: #1A1A1A;
+            --border-light: #EEEEEE;
+            --white: #FFFFFF;
+        }
+
+        body {
+            background: #F4F7F9;
+            color: #1A1A1A;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .billing-page {
+            padding: 120px 24px 100px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Invoice UI Container */
+        .invoice-card {
+            background: var(--white);
+            border-radius: 0;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            position: relative;
+            page-break-inside: avoid;
+        }
+
+        /* PDF specific shrinking */
+        .pdf-mode {
+            padding: 30px !important;
+            transform: scale(0.95);
+            transform-origin: top center;
+        }
+        .pdf-mode .invoice-header { margin-bottom: 30px !important; }
+        .pdf-mode .details-grid { margin-bottom: 30px !important; }
+        .pdf-mode .invoice-section-title { margin-top: 20px !important; }
+        .pdf-mode .invoice-footer { margin-top: 40px !important; }
+
+        /* Header Section */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 60px;
+            page-break-inside: avoid;
+        }
+
+        .brand-section h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            color: var(--royal-blue);
+            letter-spacing: 4px;
+            margin-bottom: 5px;
+        }
+        .brand-section p {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold-accent);
+        }
+
+        .invoice-status-section {
+            text-align: right;
+        }
+        .invoice-status-section h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: var(--royal-blue);
+            margin-bottom: 10px;
+        }
+        .paid-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #E8F5E9;
+            color: #2E7D32;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* Details Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .details-card {
+            background: #FAFAFA;
+            border: 1px solid var(--border-light);
+            padding: 24px;
+        }
+        .details-card h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--royal-blue);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--gold-accent);
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        .info-row span:first-child { color: #666; }
+        .info-row span:last-child { font-weight: 600; color: var(--text-dark); }
+
+        /* Tables */
+        .invoice-section-title {
+            background: var(--royal-blue);
+            color: var(--white);
+            padding: 12px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            margin-top: 40px;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .invoice-table th {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 2px solid var(--royal-blue);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #666;
+        }
+        .invoice-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.85rem;
+        }
+        .invoice-table td:last-child, .invoice-table th:last-child {
+            text-align: right;
+        }
+
+        /* Summary Section */
+        .summary-container {
+            margin-top: 60px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .summary-box {
+            width: 350px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .grand-total {
+            background: var(--royal-blue);
+            color: var(--white);
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Footer */
+        .invoice-footer {
+            margin-top: 80px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 40px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .signature-box {
+            border-top: 1px solid var(--text-dark);
+            margin-top: 40px;
+            padding-top: 10px;
+            width: 200px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .thank-you-msg {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            color: var(--gold-accent);
+            margin-bottom: 10px;
+        }
+
+        /* PDF Actions */
+        .pdf-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+        .download-btn {
+            background: var(--royal-blue);
+            color: var(--white);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loader">
+        <i class="ph-bold ph-spinner ph-spin" style="font-size: 3rem; color: var(--gold-accent);"></i>
+    </div>
+
+    <nav class="navbar scrolled">
+        <div class="nav-brand">
+            <a href="index.html"><img src="public/logo.png" alt="LuxeStay" class="nav-logo"></a>
+        </div>
+        <div class="nav-actions">
+            <a href="javascript:history.back()" class="luxe-back-btn">
+                <i class="ph ph-arrow-left"></i>
+                <span>Back</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="billing-page">
+        <div id="invoice-render-area" class="invoice-card">
+            <!-- Header -->
+            <div class="invoice-header">
+                <div class="brand-section">
+                    <h1 id="invoice-hotel-name">LUXESTAY</h1>
+                    <p id="invoice-hotel-tagline">Experience the Extraordinary</p>
+                </div>
+                <div class="invoice-status-section">
+                    <h2>INVOICE</h2>
+                    <div class="paid-badge">
+                        <i class="ph-bold ph-check-circle"></i> PAID
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest & Invoice Info -->
+            <div class="details-grid">
+                <div class="details-card">
+                    <h4>Guest Details</h4>
+                    <div class="info-row"><span>Name:</span><span id="guest-name">---</span></div>
+                    <div class="info-row"><span>Email:</span><span id="guest-email">---</span></div>
+                    <div class="info-row"><span>Guest ID:</span><span id="guest-id">---</span></div>
+                    <div class="info-row"><span>Address:</span><span id="guest-address">---</span></div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="details-card">
+                        <h4>Stay Details</h4>
+                        <div class="info-row"><span>Check-In:</span><span id="stay-checkin">---</span></div>
+                        <div class="info-row"><span>Check-Out:</span><span id="stay-checkout">---</span></div>
+                        <div class="info-row"><span>Room:</span><span id="stay-room">---</span></div>
+                        <div class="info-row"><span>Room Type:</span><span id="stay-room-type">---</span></div>
+                        <div class="info-row"><span>Duration:</span><span id="stay-nights">0 Nights</span></div>
+                    </div>
+                    <div class="details-card">
+                        <h4>Invoice Info</h4>
+                        <div class="info-row"><span>Invoice ID:</span><span id="inv-id">---</span></div>
+                        <div class="info-row"><span>Date:</span><span id="inv-date">---</span></div>
+                        <div class="info-row"><span>Method:</span><span id="payment-method">---</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables -->
+            <div class="invoice-section-title">Accommodation Charges</div>
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Nights</th>
+                        <th>Rate/Night</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="room-table-body"></tbody>
+            </table>
+
+            <div class="invoice-section-title">Gourmet Dining & Orders</div>
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Order ID & Items</th>
+                        <th>Date & Time</th>
+                        <th>Quantity</th>
+                        <th>Avg Unit Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="food-table-body"></tbody>
+            </table>
+
+            <div class="invoice-section-title">Hotel Services & Amenities</div>
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Date</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="service-table-body"></tbody>
+            </table>
+
+            <div class="invoice-section-title">Luxury Experiences & Tours</div>
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Experience Name</th>
+                        <th>Date</th>
+                        <th>Guests</th>
+                        <th>Price/Guest</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="experience-table-body"></tbody>
+            </table>
+
+            <!-- Summary -->
+            <div class="summary-container">
+                <div class="summary-box">
+                    <div class="summary-item"><span>Room Total</span><span id="sum-room">₹0</span></div>
+                    <div class="summary-item"><span>Dining Total</span><span id="sum-food">₹0</span></div>
+                    <div class="summary-item"><span>Services Total</span><span id="sum-service">₹0</span></div>
+                    <div class="summary-item"><span>Experiences Total</span><span id="sum-exp">₹0</span></div>
+                    <div class="summary-item"><span>Subtotal</span><span id="sum-subtotal">₹0</span></div>
+                    <div class="summary-item"><span>GST (18%)</span><span id="sum-gst">₹0</span></div>
+                    <div class="grand-total">
+                        <span>Total Due</span>
+                        <span id="sum-grand-total">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="invoice-footer">
+                <div class="footer-grid">
+                    <div>
+                        <div class="thank-you-msg">Thank You for your Visit</div>
+                        <p id="thank-you-subtext" style="font-size: 0.8rem; color: #666; line-height: 1.6;">
+                            It was a pleasure hosting you at LuxeStay Heritage. We hope your stay was 
+                            extraordinary and we look forward to welcoming you back.
+                        </p>
+                        <div style="margin-top: 20px; display: flex; gap: 15px; color: #888;">
+                            <i class="ph-bold ph-shield-check"></i> Secure Payment
+                            <i class="ph-bold ph-headset"></i> 24/7 Support
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;">
+                        <div class="signature-box">Authorized Signature</div>
+                    </div>
+                </div>
+                <div id="footer-brand-text" style="text-align: center; margin-top: 60px; font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 2px;">
+                    LuxeStay Heritage & resorts
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pdf-actions">
+        <button class="download-btn" onclick="downloadPDF()">
+            <i class="ph-bold ph-file-pdf"></i> Download PDF Invoice
+        </button>
+    </div>
+
+    <script type="module">
+        import { LuxeDB, supabase } from './supabase-config.js';
+        import { NotificationSystem } from './notifications.js';
+
+        // Expose functions to window
+        window.downloadPDF = () => downloadPDF();
+
+        function calculateNights(checkIn, checkOut) {
+            const cin = new Date(checkIn);
+            const cout = new Date(checkOut);
+            const diffTime = Math.abs(cout - cin);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays || 1;
+        }
+
+        function getHotelAddress(hotelName) {
+            const name = (hotelName || "").toLowerCase();
+            if (name.includes("rambagh") || name.includes("jaipur")) {
+                return "Bhawani Singh Road, Jaipur, Rajasthan 302005, India";
+            }
+            if (name.includes("lake palace") || name.includes("udaipur")) {
+                return "Lake Pichola, Udaipur, Rajasthan 313001, India";
+            }
+            if (name.includes("leela") || name.includes("delhi")) {
+                return "Diplomatic Enclave, Chanakyapuri, New Delhi 110023, India";
+            }
+            if (name.includes("oberoi") || name.includes("mumbai")) {
+                return "Nariman Point, Mumbai, Maharashtra 400021, India";
+            }
+            if (name.includes("taj mahal") || name.includes("colaba")) {
+                return "Apollo Bandar, Colaba, Mumbai, Maharashtra 400001, India";
+            }
+            return "12th Floor, Heritage Plaza, Mumbai, India";
+        }
+
+        function getPaymentMethod(email) {
+            const hash = (email || "guest").split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const cardDigits = 1000 + (hash % 9000);
+            const brands = ["Visa", "Mastercard", "American Express"];
+            const brand = brands[hash % brands.length];
+            return `Credit Card (${brand} ending in *${cardDigits})`;
+        }
+
+        function parseQuantityAndItems(itemsStr) {
+            let cleanStr = itemsStr || "";
+            if (cleanStr.includes('🍽️ ITEMS:')) {
+                cleanStr = cleanStr.split('\n')[0].replace('🍽️ ITEMS: ', '');
+            }
+            
+            if (cleanStr.includes(' | ')) {
+                cleanStr = cleanStr.split(' | ').filter(part => !part.includes('ROOM:') && !part.includes('DELIVERY:') && !part.includes('GUEST:') && !part.includes('NOTE:') && !part.includes('📝') && !part.includes('📍') && !part.includes('📧')).join(', ');
+            }
+            
+            const matches = [...cleanStr.matchAll(/\[(\d+)\]|(\d+)x|(\d+)\s*x/g)];
+            let totalQty = 0;
+            if (matches.length > 0) {
+                matches.forEach(m => {
+                    const q = m[1] || m[2] || m[3];
+                    if (q) totalQty += parseInt(q);
+                });
+            } else {
+                totalQty = 1;
+            }
+            return { items: cleanStr, qty: totalQty };
+        }
+
+        function getServicePrice(serviceType, dbPrice) {
+            if (dbPrice && dbPrice > 0) return dbPrice;
+            
+            const name = (serviceType || "").toLowerCase();
+            if (name.includes("spa") || name.includes("jiva")) {
+                return 4500;
+            }
+            if (name.includes("gazebo") || name.includes("dinner")) {
+                if (name.includes("2 guests") || name.includes("couple")) {
+                    return 16000;
+                }
+                return 8000;
+            }
+            if (name.includes("heritage") || name.includes("walk") || name.includes("tour")) {
+                return 2500;
+            }
+            if (name.includes("laundry")) {
+                return 350; // Modest pricing as requested
+            }
+            // Housekeeping, Room Cleaning, Maintenance are standard complimentary hotel services
+            return 0; 
+        }
+
+        async function loadInvoiceData() {
+            console.log("🚀 Initializing LuxeStay Billing System...");
+            const loader = document.getElementById('loader');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetBookingId = urlParams.get('booking_id');
+            
+            try {
+                const user = await LuxeDB.getUser();
+                const profile = await LuxeDB.getProfile();
+                const email = user?.email || localStorage.getItem('guestEmail');
+
+                if (!email) {
+                    console.error("❌ No guest email found. Redirecting to login.");
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Header Info
+                document.getElementById('guest-name').textContent = profile?.full_name || user?.user_metadata?.full_name || 'Valued Guest';
+                document.getElementById('guest-email').textContent = email;
+                document.getElementById('guest-id').textContent = `GSTY-${email.slice(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+                document.getElementById('inv-id').textContent = targetBookingId ? `INV-${targetBookingId.slice(0, 8).toUpperCase()}` : `INV-${Math.floor(100000 + Math.random() * 900000)}`;
+                document.getElementById('inv-date').textContent = new Date().toLocaleDateString('en-IN');
+
+                console.log("📡 Fetching billing records from Supabase...");
+                const [allBookings, allOrders, allServices] = await Promise.all([
+                    LuxeDB.getBookings(),
+                    LuxeDB.getOrders(),
+                    LuxeDB.getServices()
+                ]);
+
+                if (!allBookings || allBookings.length === 0) {
+                    console.warn("⚠️ No bookings found for this user.");
+                    if (loader) loader.style.display = 'none';
+                    return;
+                }
+
+                // Identifying the specific booking
+                let booking = allBookings[0];
+                if (targetBookingId) {
+                    booking = allBookings.find(b => b.id && b.id.toString() === targetBookingId) || allBookings[0];
+                }
+
+                if (!booking) {
+                    console.warn("⚠️ No active booking found.");
+                    if (loader) loader.style.display = 'none';
+                    return;
+                }
+
+                // Dynamic Hotel Brand Rendering
+                const currentHotelName = booking.hotel_name || "LuxeStay Heritage";
+                document.title = `Invoice - ${currentHotelName}`;
+
+                const invHotelNameEl = document.getElementById('invoice-hotel-name');
+                if (invHotelNameEl) invHotelNameEl.textContent = currentHotelName.toUpperCase();
+
+                const invHotelTaglineEl = document.getElementById('invoice-hotel-tagline');
+                if (invHotelTaglineEl) {
+                    if (currentHotelName.toLowerCase().includes("rambagh")) {
+                        invHotelTaglineEl.textContent = "A Jewel in the Crown of Jaipur";
+                    } else if (currentHotelName.toLowerCase().includes("lake palace")) {
+                        invHotelTaglineEl.textContent = "The Floating Palace of Udaipur";
+                    } else {
+                        invHotelTaglineEl.textContent = "Experience the Extraordinary";
+                    }
+                }
+
+                const thankYouSubtextEl = document.getElementById('thank-you-subtext');
+                if (thankYouSubtextEl) {
+                    thankYouSubtextEl.textContent = `It was a pleasure hosting you at ${currentHotelName}. We hope your stay was extraordinary and we look forward to welcoming you back.`;
+                }
+
+                const footerBrandTextEl = document.getElementById('footer-brand-text');
+                if (footerBrandTextEl) {
+                    footerBrandTextEl.textContent = `${currentHotelName} & Resorts`;
+                }
+
+                const checkInDate = new Date(booking.check_in || Date.now());
+                const checkOutDate = new Date(booking.check_out || Date.now());
+                const checkOutLimit = new Date(checkOutDate);
+                checkOutLimit.setHours(23, 59, 59, 999);
+
+                const nights = calculateNights(booking.check_in, booking.check_out) || 1;
+                const roomTotal = Number(booking.total_price || 0);
+                const ratePerNight = roomTotal / nights;
+
+                // Update Stay Detail Card
+                const stayCheckinEl = document.getElementById('stay-checkin');
+                const stayCheckoutEl = document.getElementById('stay-checkout');
+                const stayRoomEl = document.getElementById('stay-room');
+                const stayRoomTypeEl = document.getElementById('stay-room-type');
+                const stayNightsEl = document.getElementById('stay-nights');
+                const guestAddressEl = document.getElementById('guest-address');
+                const paymentMethodEl = document.getElementById('payment-method');
+
+                if (stayCheckinEl) stayCheckinEl.textContent = checkInDate.toLocaleDateString();
+                if (stayCheckoutEl) stayCheckoutEl.textContent = checkOutDate.toLocaleDateString();
+                if (stayRoomEl) {
+                    stayRoomEl.textContent = booking.room ? `Room ${booking.room}` : "Room 203";
+                }
+                if (stayRoomTypeEl) {
+                    stayRoomTypeEl.textContent = booking.room_name || "Luxe Suite";
+                }
+                if (stayNightsEl) {
+                    stayNightsEl.textContent = `${nights} Night${nights > 1 ? 's' : ''}`;
+                }
+                if (guestAddressEl) {
+                    guestAddressEl.textContent = getHotelAddress(booking.hotel_name);
+                }
+                if (paymentMethodEl) {
+                    paymentMethodEl.textContent = getPaymentMethod(email);
+                }
+
+                // 1. Accommodation Rendering
+                const roomBody = document.getElementById('room-table-body');
+                if (roomBody) {
+                    roomBody.innerHTML = `
+                        <tr>
+                            <td style="font-weight: 600;">${booking.room_name || 'Premium Room'} - ${booking.hotel_name || 'LuxeStay'}</td>
+                            <td>${checkInDate.toLocaleDateString()}</td>
+                            <td>${checkOutDate.toLocaleDateString()}</td>
+                            <td>${nights}</td>
+                            <td>₹${ratePerNight.toLocaleString('en-IN')}</td>
+                            <td style="font-weight: 700;">₹${roomTotal.toLocaleString('en-IN')}</td>
+                        </tr>
+                    `;
+                }
+
+                // 2. Gourmet Dining
+                const foodBody = document.getElementById('food-table-body');
+                let foodTotal = 0;
+                
+                if (foodBody) {
+                    const stayOrders = allOrders.filter(o => {
+                        const orderDate = new Date(o.created_at);
+                        return orderDate >= checkInDate && orderDate <= checkOutLimit;
+                    });
+
+                    if (stayOrders.length > 0) {
+                        foodBody.innerHTML = ''; // Clear empty state
+                        stayOrders.forEach(o => {
+                            const total = Number(o.total_price || 0);
+                            foodTotal += total;
+                            
+                            const parsed = parseQuantityAndItems(o.items);
+                            const avgPrice = parsed.qty > 0 ? (total / parsed.qty) : total;
+
+                            foodBody.innerHTML += `
+                                <tr>
+                                    <td style="font-weight: 600;">#${(o.id || 'ORD').toString().slice(0, 8).toUpperCase()} - ${parsed.items}</td>
+                                    <td>${new Date(o.created_at).toLocaleString()}</td>
+                                    <td>${parsed.qty}</td>
+                                    <td>₹${avgPrice.toLocaleString('en-IN')}</td>
+                                    <td style="font-weight: 700;">₹${total.toLocaleString('en-IN')}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        foodBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999; padding: 20px;">No dining orders found for this stay.</td></tr>';
+                    }
+                }
+
+                // 3. Services & 4. Experiences
+                const srvBody = document.getElementById('service-table-body');
+                const expBody = document.getElementById('experience-table-body');
+                let serviceTotal = 0;
+                let experienceTotal = 0;
+
+                if (srvBody && expBody) {
+                    const stayServices = allServices.filter(s => {
+                        const serviceDate = new Date(s.created_at);
+                        return serviceDate >= checkInDate && serviceDate <= checkOutLimit;
+                    });
+
+                    srvBody.innerHTML = '';
+                    expBody.innerHTML = '';
+
+                    if (stayServices.length > 0) {
+                        stayServices.forEach(s => {
+                            const price = getServicePrice(s.service_type, Number(s.price || 0));
+                            if (s.category === 'experience') {
+                                experienceTotal += price;
+                                expBody.innerHTML += `
+                                    <tr>
+                                        <td style="font-weight: 600;">${s.service_type || 'Luxury Experience'}</td>
+                                        <td>${new Date(s.created_at).toLocaleDateString()}</td>
+                                        <td>1</td>
+                                        <td>₹${price.toLocaleString('en-IN')}</td>
+                                        <td style="font-weight: 700;">₹${price.toLocaleString('en-IN')}</td>
+                                    </tr>
+                                `;
+                            } else {
+                                serviceTotal += price;
+                                const displayPrice = price > 0 ? `₹${price.toLocaleString('en-IN')}` : "Complimentary";
+                                srvBody.innerHTML += `
+                                    <tr>
+                                        <td style="font-weight: 600;">${s.service_type || 'Guest Service'}</td>
+                                        <td>${new Date(s.created_at).toLocaleDateString()}</td>
+                                        <td>1</td>
+                                        <td>${displayPrice}</td>
+                                        <td style="font-weight: 700;">${displayPrice}</td>
+                                    </tr>
+                                `;
+                            }
+                        });
+                    }
+
+                    if (serviceTotal === 0) srvBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999; padding: 20px;">No additional services used.</td></tr>';
+                    if (experienceTotal === 0) expBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999; padding: 20px;">No luxury experiences booked.</td></tr>';
+                }
+
+                // Final Calculations
+                const subtotal = roomTotal + foodTotal + serviceTotal + experienceTotal;
+                const gst = subtotal * 0.18;
+                const grandTotal = subtotal + gst;
+
+                // Summary UI
+                const sumRoom = document.getElementById('sum-room');
+                const sumFood = document.getElementById('sum-food');
+                const sumSrv = document.getElementById('sum-service');
+                const sumExp = document.getElementById('sum-exp');
+                const sumSub = document.getElementById('sum-subtotal');
+                const sumGst = document.getElementById('sum-gst');
+                const sumGrand = document.getElementById('sum-grand-total');
+
+                if (sumRoom) sumRoom.textContent = `₹${roomTotal.toLocaleString('en-IN')}`;
+                if (sumFood) sumFood.textContent = `₹${foodTotal.toLocaleString('en-IN')}`;
+                if (sumSrv) sumSrv.textContent = `₹${serviceTotal.toLocaleString('en-IN')}`;
+                if (sumExp) sumExp.textContent = `₹${experienceTotal.toLocaleString('en-IN')}`;
+                if (sumSub) sumSub.textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+                if (sumGst) sumGst.textContent = `₹${gst.toLocaleString('en-IN')}`;
+                if (sumGrand) sumGrand.textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
+
+            } catch (error) {
+                console.error("❌ Billing System Error:", error);
+                NotificationSystem.showToast("We encountered an error while preparing your invoice. Please contact the front desk.", "error");
+            } finally {
+                if (loader) loader.style.display = 'none';
+            }
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('invoice-render-area');
+            if (!element) return;
+            
+            element.classList.add('pdf-mode');
+
+            const options = {
+                margin: 0,
+                filename: `LuxeStay_Invoice_${Date.now()}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    letterRendering: true,
+                    scrollY: 0
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { mode: 'avoid-all' }
+            };
+
+            const originalWidth = element.style.width;
+            element.style.width = '800px';
+
+            html2pdf().set(options).from(element).save().then(() => {
+                element.style.width = originalWidth;
+                element.classList.remove('pdf-mode');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadInvoiceData);
+    </script>
+</body>
+</html>

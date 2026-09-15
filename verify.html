@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeStay - Verify Identity</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="landing-container login-page">
+        <header class="header login-header">
+            <!-- No back button to prevent breaking the flow -->
+        </header>
+
+        <main class="main-content login-content-area">
+            <div class="login-card">
+                <div class="brand login-brand">
+                    <img src="public/logo.png" alt="LuxeStay Logo" class="logo-small">
+                    <h1 class="app-name-small">LuxeStay</h1>
+                </div>
+
+                <div class="login-form">
+                    <h2 style="font-family: 'Cinzel', serif; color: #D4AF37;">Identity Verification</h2>
+                    <p class="instruction" id="verify-msg">Please enter the 6-digit code sent to your email.</p>
+                    
+                    <div class="input-group">
+                        <i class="ph ph-lock-key"></i>
+                        <input type="text" id="otp-input" placeholder="Enter 6-digit Code" maxlength="6" inputmode="numeric" required>
+                    </div>
+
+                    <p class="error-msg" id="auth-error"></p>
+
+                    <button class="login-btn action-btn" id="verify-btn">
+                        <span class="btn-text">Verify Account</span>
+                        <i class="ph ph-check-circle"></i>
+                    </button>
+                    
+                    <p class="resend-text" style="margin-top: 20px;">Didn't receive it? <span id="resend-link" style="color: #D4AF37; cursor: pointer;">Resend Code</span></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="verify.js"></script>
+</body>
+</html>

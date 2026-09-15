@@ -1,0 +1,18 @@
+# Environment Variables (CRITICAL: Do not expose secrets)
+.env
+.env.local
+.env.production
+*.env
+
+# Dependency directory
+node_modules/
+
+# Logs & Temporary Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+ scratch/
+TEMP/
+.DS_Store
+Thumbs.db

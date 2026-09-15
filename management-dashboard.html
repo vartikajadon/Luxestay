@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeStay - Management Command Center</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .hotel-selector-panel {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .manager-select {
+            background: #0A1425;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1rem;
+            min-width: 300px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .manager-select:focus {
+            border-color: #D4AF37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        .task-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .task-card:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-5px);
+        }
+        .staff-badge {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .assign-btn {
+            background: #D4AF37;
+            color: #07101E;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .assign-btn:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+        .staff-dropdown {
+            background: rgba(255,255,255,0.95);
+            border: 1px solid rgba(212,175,55,0.3);
+            color: #000;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 10px;
+            outline: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <img src="public/logo.png" alt="LuxeStay Logo" class="admin-logo">
+                <h3>Management Hub</h3>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="switchTab('all', this)"><i class="ph-fill ph-clipboard-text"></i> Task Assignment</a>
+                <a href="#" class="nav-item" onclick="switchTab('services', this)"><i class="ph ph-bell-ringing"></i> Service Stream</a>
+                <a href="#" class="nav-item" onclick="switchTab('staff', this)"><i class="ph ph-users-three"></i> Staff Directory</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="admin-logout-btn">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Conclude Session</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <h2>Executive Task Management</h2>
+                    <p id="current-date">Orchestrating operational excellence</p>
+                </div>
+                <div class="header-right">
+                    <div class="admin-profile">
+                        <span>Manager</span>
+                        <div class="admin-avatar" style="background: #D4AF37; color: #07101E;">M</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 🏨 3. HOTEL SELECTOR (CONTROL POINT) -->
+            <section class="hotel-selector-panel">
+                <h4 style="color: #D4AF37; font-family: 'Cinzel', serif; margin-bottom: 15px; letter-spacing: 2px;">Property Command</h4>
+                <select id="hotelSelect" class="manager-select">
+                    <option value="" disabled selected>Choose Property...</option>
+                </select>
+            </section>
+
+            <!-- Operational Workspace -->
+            <div id="operational-workspace" style="display: none;">
+                <div class="activity-hub">
+                    <!-- 📋 5. LOAD ONLY THAT HOTEL REQUESTS -->
+                    <div class="data-panel" id="service-panel" style="flex: 2;">
+                        <div class="panel-header">
+                            <h3>Operational Service Stream</h3>
+                            <span class="staff-badge" id="request-count">0 Requests</span>
+                        </div>
+                        <div id="requestsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding-top: 20px;">
+                            <!-- Requests loaded via JS -->
+                        </div>
+                    </div>
+
+                    <!-- 👨🔧 6. LOAD ONLY THAT HOTEL STAFF -->
+                    <div class="data-panel" id="staff-panel" style="flex: 1;">
+                        <div class="panel-header">
+                            <h3>Active Property Staff</h3>
+                        </div>
+                        <div id="staff-list" style="display: flex; flex-direction: column; gap: 15px; padding-top: 20px;">
+                            <!-- Staff loaded via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { LuxeDB, supabase } from './supabase-config.js';
+
+        // 🔐 ROLE PROTECTION
+        const session = JSON.parse(localStorage.getItem("session") || "{}");
+        if (session.role !== "management") {
+            window.location.href = "admin-signin.html";
+        }
+
+        const hotelSelect = document.getElementById("hotelSelect");
+        let servicesData = [];
+        let ordersData = [];
+        let staffData = [];
+
+        // 🏨 2. STORE SELECTED HOTEL ID (UUID)
+        hotelSelect.addEventListener("change", async (e) => {
+            const hotelId = e.target.value;
+            if (!hotelId) return;
+            localStorage.setItem("mgmt_hotel_id", hotelId);
+            document.getElementById('operational-workspace').style.display = 'block';
+            await loadDashboardData(hotelId);
+        });
+
+        const alternativeHotelCodes = {
+            "ce42ee9c-1084-4f3c-8124-ce830ba49547": ["IND-GOA-W", "W Goa"],
+            "79095573-89d3-4a33-9af6-7a86767cb77c": ["FRA-PAR-PLA", "FRANCE-PARIS-HPA", "Hôtel Plaza Athénée"],
+            "5cfe0e6b-835a-426d-850a-237c4d9ca1d0": ["UK-LON-SAV", "UK-LONDON-SAV", "The Savoy"],
+            "4334cbc5-039d-4efe-a145-8f83d3652680": ["UAE-DUB-ADM", "Address Dubai Marina"],
+            "898a97aa-2517-4c4e-8ee4-4e18dda8e983": ["UAE-DUBAI-ARM", "UAE-DUBAI-AHD", "Armani Hotel Dubai"],
+            "bd1ef201-35d9-42c5-9fdf-c64d9e0697c7": ["UAE-DUBAI-ATL", "Atlantis The Royal"],
+            "09a17ad6-055d-47ad-9a8f-17c3ce8c6339": ["IND-BHO-LEE", "INDIA-BHOPAL-TLP", "The Leela Palace"],
+            "406e85f7-6270-4da9-99db-50d8508586d3": ["IND-DEL-ITC", "ITC Maurya"],
+            "e0127af6-589a-4c4a-a418-0f3e729dfd5c": ["IND-MUM-OBE", "The Oberoi Mumbai"],
+            "fb41c9d5-07a6-46ab-a429-f929c1ec78e6": ["IND-JAI-RAM", "Rambagh Palace"],
+            "b653fed9-98a2-4933-9315-a89e20d64999": ["SGP-SGP-MBS", "Marina Bay Sands"],
+            "cab8a952-a47f-4c68-bcf6-707fb133367d": ["IND-UDA-TAJ", "Taj Lake Palace"],
+            "2c595da2-a260-4670-9bbc-2a889c7b566a": ["FRA-PAR-LPV", "LuxeStay Palace Vendôme"],
+            "59f114ee-2ac5-49c4-a358-640c6b6e43a7": ["UK-LON-LHM", "LuxeStay Highland Manor"],
+            "bb7edfc7-499f-4c6a-8d13-b9b7d3f90889": ["IND-GOA-LNS", "LuxeStay Azure Sands"],
+            "49a0dcce-c1ae-4947-a35a-66ff539f4e3d": ["UK-DUB-BAAJ", "UAE-DUBAI-BAAJ", "UK-DUBAI-LBAA", "UAE-DUBAI-LBAA", "LuxeStay Burj AL Arab", "LuxeStay Burj Al Arab"]
+        };
+
+        // 🔄 3. LOAD ALL DATA
+        async function loadDashboardData(hotelId) {
+            await Promise.all([
+                loadServices(),
+                loadOrders(),
+                loadStaff(hotelId)
+            ]);
+            renderRequests();
+            renderStaffSidebar();
+        }
+
+        // 📋 4. LOAD SERVICE REQUESTS (Get all for client-side legacy identity matching)
+        async function loadServices() {
+            let query = supabase.from("services").select("*");
+            const { data, error } = await query.order("created_at", { ascending: false });
+            if (error) console.error("Service Load Error:", error);
+            servicesData = data || [];
+        }
+
+        // 🍔 5. LOAD FOOD ORDERS (Get all for client-side legacy identity matching)
+        async function loadOrders() {
+            let query = supabase.from("orders").select("*");
+            const { data, error } = await query.order("created_at", { ascending: false });
+            if (error) console.error("Order Load Error:", error);
+            ordersData = data || [];
+        }
+
+        // 👨🔧 6. LOAD STAFF
+        async function loadStaff(hotelId) {
+            let query = supabase.from("staff").select("*").eq("status", "Active");
+            if (hotelId && hotelId !== "all") {
+                query = query.eq("hotel_id", hotelId);
+            }
+            const { data } = await query;
+            staffData = data || [];
+        }
+
+        // 🔗 7. MERGE & FILTER REQUEST STREAM
+        function getAllRequests() {
+            const selectedHotelId = hotelSelect.value;
+            const rawRequests = [
+                ...servicesData.map(s => ({ ...s, source: "service" })),
+                ...ordersData.map(o => ({ ...o, source: "order" }))
+            ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            if (!selectedHotelId || selectedHotelId === "all") {
+                return rawRequests;
+            }
+
+            // Get valid matches for legacy, alternative codes & name variations
+            const validMatches = [selectedHotelId];
+            const alts = alternativeHotelCodes[selectedHotelId] || [];
+            alts.forEach(alt => validMatches.push(alt.toLowerCase()));
+
+            return rawRequests.filter(req => {
+                // 1. Direct hotel_id check (case-insensitive for safety)
+                if (req.hotel_id && (validMatches.includes(req.hotel_id) || validMatches.includes(req.hotel_id.toLowerCase()))) {
+                    return true;
+                }
+
+                // 2. Direct hotel_name check
+                if (req.hotel_name && alts.some(alt => alt.toLowerCase() === req.hotel_name.toLowerCase())) {
+                    return true;
+                }
+                
+                // 3. Textual Fallback: If hotel_id is null, check room delivery strings or notes
+                const searchString = `${req.room || ''} ${req.items || ''} ${req.note || ''}`.toLowerCase();
+                return alts.some(alt => searchString.includes(alt.toLowerCase()));
+            });
+        }
+
+        // 🎨 8. RENDER REQUESTS (Categorized by Hotel ID)
+        function renderRequests() {
+            const container = document.getElementById("requestsContainer");
+            const requests = getAllRequests();
+            const selectedHotelId = hotelSelect.value;
+            
+            document.getElementById('request-count').textContent = `${requests.length} Requests`;
+            
+            if (requests.length === 0) {
+                container.innerHTML = `<div class="data-panel" style="grid-column: 1/-1; text-align: center; padding: 40px; color: rgba(255,255,255,0.4);">No requests found for this hotel.</div>`;
+                return;
+            }
+
+            // Group requests by hotel_id if viewing "All Properties"
+            if (!selectedHotelId || selectedHotelId === "all") {
+                const grouped = requests.reduce((acc, req) => {
+                    const hotelKey = req.hotel_id || 'Unknown Property';
+                    if (!acc[hotelKey]) acc[hotelKey] = [];
+                    acc[hotelKey].push(req);
+                    return acc;
+                }, {});
+
+                container.innerHTML = Object.keys(grouped).map(hotelId => `
+                    <div style="grid-column: 1/-1; margin-top: 20px; border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 10px;">
+                        <h4 style="color: #D4AF37; font-family: 'Cinzel', serif; letter-spacing: 2px;">PROPERTY: ${hotelId}</h4>
+                    </div>
+                    ${grouped[hotelId].map(req => renderTaskCard(req)).join('')}
+                `).join('');
+            } else {
+                container.innerHTML = requests.map(req => renderTaskCard(req)).join('');
+            }
+        }
+
+        function renderTaskCard(req) {
+            return `
+                <div class="task-card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <span class="staff-badge" style="background: ${req.source === 'order' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(212, 175, 55, 0.1)'}; color: ${req.source === 'order' ? '#4caf50' : '#D4AF37'};">
+                            ${req.source === 'order' ? '🍔 FOOD ORDER' : (req.service_type || 'SERVICE').toUpperCase()}
+                        </span>
+                        <span style="color: ${req.status === 'Pending' ? '#ffc107' : '#4caf50'}; font-size: 0.7rem; font-weight: 700;">${(req.status || 'PENDING').toUpperCase()}</span>
+                    </div>
+                    <h4 style="color: #fff; margin-bottom: 8px;">Room ${req.room || 'N/A'}</h4>
+                    <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 20px; min-height: 40px;">
+                        ${req.source === 'order' ? (req.items || 'Gourmet Selection') : (req.note || 'No specific instructions')}
+                    </p>
+                    
+                    <div class="assignment-box" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        <select class="staff-dropdown" onchange="window.assignTask('${req.id}', this.value, '${req.source}')" style="margin-bottom: 0;">
+                            <option value="">Assign Property Staff...</option>
+                            ${staffData.map(st => `
+                                <option value="${st.id}" ${req.assigned_to === st.id ? 'selected' : ''}>
+                                    ${st.name} (${st.role})
+                                </option>
+                            `).join("")}
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffSidebar() {
+            const list = document.getElementById('staff-list');
+            list.innerHTML = staffData.map(s => `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="width: 32px; height: 32px; background: rgba(212,175,55,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #D4AF37; font-size: 0.8rem;">
+                        <i class="ph-fill ph-user"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <h5 style="color: #fff; font-size: 0.85rem; margin: 0;">${s.name}</h5>
+                        <p style="color: rgba(255,255,255,0.4); font-size: 0.7rem; margin: 0;">${s.role}</p>
+                    </div>
+                    <div style="width: 8px; height: 8px; background: #4CAF50; border-radius: 50%;"></div>
+                </div>
+            `).join('');
+        }
+
+        // 🔧 9. ASSIGN TASK
+        window.assignTask = async (requestId, staffId, source) => {
+            if (!staffId) return;
+            const table = source === "order" ? "orders" : "services";
+            const hotelUUID = localStorage.getItem("mgmt_hotel_id");
+
+            const { error } = await supabase
+                .from(table)
+                .update({
+                    assigned_to: staffId,
+                    status: "In Progress"
+                })
+                .eq("id", requestId); // Safe query using global record id to bypass legacy ID conflicts
+
+            if (!error) {
+                showToast("Task Assigned Successfully");
+                await loadDashboardData(hotelUUID);
+            } else {
+                console.error("Assignment Error:", error);
+                showToast("Failed to assign task.", "error");
+            }
+        };
+
+        // 🔔 LUXE NOTIFICATION SYSTEM
+        function showToast(message, type = "success") {
+            const toast = document.createElement("div");
+            toast.style.cssText = `
+                position: fixed; bottom: 30px; right: 30px; 
+                background: ${type === 'error' ? 'rgba(255, 68, 68, 0.9)' : 'rgba(212, 175, 55, 0.95)'};
+                color: ${type === 'error' ? '#fff' : '#07101E'};
+                padding: 15px 30px; border-radius: 12px;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-weight: 700; font-size: 0.9rem;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                backdrop-filter: blur(10px); z-index: 10000;
+                animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                display: flex; align-items: center; gap: 12px;
+            `;
+            toast.innerHTML = `<i class="ph-fill ph-${type === 'error' ? 'warning-circle' : 'check-circle'}" style="font-size: 1.2rem;"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Add Animations to Styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toastIn { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            @keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(100px); opacity: 0; } }
+        `;
+        document.head.appendChild(style);
+
+        // 🔁 10. AUTO LOAD LAST HOTEL
+        window.onload = async () => {
+            // 🏨 1. HOTEL DROPDOWN (CRITICAL FIX)
+            const { data: hotels } = await supabase.from("hotels").select("*");
+            
+            // Add Global Option
+            const allOpt = document.createElement('option');
+            allOpt.value = "all";
+            allOpt.textContent = "All Elite Properties (Categorized)";
+            hotelSelect.appendChild(allOpt);
+
+            hotels.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h.id; 
+                opt.textContent = `${h.hotel_id || h.hotel_name} (${h.city})`;
+                hotelSelect.appendChild(opt);
+            });
+
+            const savedHotel = localStorage.getItem("mgmt_hotel_id") || "all";
+            hotelSelect.value = savedHotel;
+            document.getElementById('operational-workspace').style.display = 'block';
+            await loadDashboardData(savedHotel);
+        };
+
+        window.switchTab = (tab, btn) => {
+            const servicePanel = document.getElementById('service-panel');
+            const staffPanel = document.getElementById('staff-panel');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            // Update Active Link
+            navItems.forEach(item => item.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            // Toggle Panels
+            if (tab === 'all') {
+                servicePanel.style.display = 'block';
+                staffPanel.style.display = 'block';
+                servicePanel.style.flex = '2';
+                staffPanel.style.flex = '1';
+            } else if (tab === 'services') {
+                servicePanel.style.display = 'block';
+                staffPanel.style.display = 'none';
+                servicePanel.style.flex = '1';
+            } else if (tab === 'staff') {
+                servicePanel.style.display = 'none';
+                staffPanel.style.display = 'block';
+                staffPanel.style.flex = '1';
+            }
+        };
+
+        window.logout = () => {
+            localStorage.clear();
+            window.location.href = "admin-signin.html";
+        };
+    </script>
+</body>
+</html>

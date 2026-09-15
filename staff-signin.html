@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeStay - Staff Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { gold: '#D4AF37', luxe: '#07101E' },
+                    fontFamily: { cinzel: ['Cinzel', 'serif'], jakarta: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .input-luxe {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            transition: all 0.3s;
+        }
+        .input-luxe:focus { border-color: #D4AF37; background: rgba(255, 255, 255, 0.08); outline: none; }
+        body { background: radial-gradient(circle at center, #0B1629 0%, #040A14 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    </style>
+</head>
+<body class="font-jakarta text-white">
+    <!-- 🏛️ Navigation Bridge -->
+    <a href="index.html" class="absolute top-8 left-8 flex items-center gap-3 text-gray-400 hover:text-gold transition-all group z-20">
+        <div class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-gold/50 transition-all">
+            <i class="ph ph-arrow-left"></i>
+        </div>
+        <span class="text-xs tracking-widest font-cinzel opacity-50 group-hover:opacity-100 transition-all">RETURN TO SANCTUARY</span>
+    </a>
+
+    <div class="w-full max-w-md px-6 relative z-10">
+        <div class="text-center mb-10">
+            <img src="public/logo.png" alt="LuxeStay" class="h-20 mx-auto mb-4">
+            <h1 class="font-cinzel text-2xl tracking-widest text-gold">STAFF ENTRANCE</h1>
+        </div>
+
+        <div class="glass-card rounded-3xl p-10">
+            <form id="staff-login-form" class="space-y-6">
+                <div class="relative">
+                    <input type="text" id="staffId" required class="input-luxe w-full px-5 py-4 rounded-xl text-white placeholder-transparent peer" placeholder="Staff ID">
+                    <label class="absolute left-5 top-4 text-gray-400 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-gold bg-transparent px-1">Staff ID</label>
+                </div>
+                <div class="relative">
+                    <input type="password" id="password" required class="input-luxe w-full px-5 py-4 rounded-xl text-white placeholder-transparent peer" placeholder="Password">
+                    <label class="absolute left-5 top-4 text-gray-400 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-gold bg-transparent px-1">Password</label>
+                </div>
+                <button type="submit" class="w-full bg-gold hover:bg-yellow-600 text-luxe font-bold py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                    <span id="btn-text">Log In</span>
+                    <i class="ph ph-identification-card font-bold"></i>
+                </button>
+            </form>
+            <p id="error-msg" class="text-red-400 text-sm text-center mt-4 hidden">Unauthorized Staff ID or Password.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" type="module"></script>
+    <script type="module">
+        import { Toast } from './toast.js';
+        import { supabase } from './supabase-config.js';
+
+        const DEFAULT_PASSWORD = "admin123";
+
+        document.getElementById('staff-login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const staffId = document.getElementById('staffId').value;
+            const password = document.getElementById('password').value;
+            const btnText = document.getElementById('btn-text');
+            const errorMsg = document.getElementById('error-msg');
+
+            btnText.textContent = "Authenticating...";
+            
+            try {
+                const { data: staff, error } = await supabase
+                    .from('staff')
+                    .select('*')
+                    .eq('staff_id', staffId)
+                    .single();
+
+                if (error || !staff) {
+                    throw new Error("Staff ID not found.");
+                }
+
+                if (password !== DEFAULT_PASSWORD && password !== staff.password) {
+                    throw new Error("Incorrect Password.");
+                }
+
+                // Unified Session Commit
+                localStorage.setItem('userRole', 'staff');
+                localStorage.setItem('staffID', staffId); // Standardized to staffID
+                localStorage.setItem('staffName', staff.name);
+                localStorage.setItem('hotel_id', staff.hotel_id);
+                
+                Toast.show(`Welcome back, ${staff.name}.`, "success");
+                setTimeout(() => window.location.href = 'staff-dashboard.html', 1000);
+            } catch (err) {
+                errorMsg.classList.remove('hidden');
+                btnText.textContent = "Log In";
+                Toast.show(err.message, "error");
+            }
+        };
+    </script>
+</body>
+</html>

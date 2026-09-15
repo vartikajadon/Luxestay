@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxeStay - Staff Command Portal</title>
+    <link rel="stylesheet" href="staff-dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand-section">
+                <h1 class="brand-name">LuxeStay</h1>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" onclick="loadTab('tasks', this)">
+                    <i class="ph ph-list-checks"></i>
+                    <span>My Tasks</span>
+                </a>
+                <a href="#" class="nav-item" onclick="loadTab('notifications', this)">
+                    <i class="ph ph-bell"></i>
+                    <span>Notifications</span>
+                </a>
+                <a href="#" class="nav-item" onclick="loadTab('profile', this)">
+                    <i class="ph ph-user-circle"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="#" class="nav-item logout" onclick="logoutStaff()" style="margin-top: 40px; border-top: 1px solid var(--luxe-border); padding-top: 20px; color: #ff4444;">
+                    <i class="ph ph-sign-out"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <div class="staff-profile-mini" id="sidebarProfile">
+                <p class="staff-name" id="profileName">Loading...</p>
+                <p class="staff-role-badge" id="profileRole">Fetching Role...</p>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Area -->
+        <main class="main-content">
+            <!-- Top Bar with ID Context -->
+            <header class="top-bar">
+                <div class="hotel-identity">
+                    <h2 id="displayHotelName">LuxeStay Property</h2>
+                    <p id="displayDepartment">OPERATIONS HUB</p>
+                </div>
+                <div class="staff-id-display" id="displayStaffID">
+                    ID: AE-DXB-ALT-KIT-001
+                </div>
+            </header>
+
+            <!-- Dynamic Dashboard Content Area -->
+            <section id="dashboardContent">
+                <!-- Kitchen Dashboard (Example Default) -->
+                <div id="kitDashboard" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h3>Active Epicurean Orders</h3>
+                        <span class="staff-role-badge">Live Orders: 4</span>
+                    </div>
+                    <div class="task-grid" id="kitTasks">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Housekeeping Dashboard -->
+                <div id="hkDashboard" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h3>Room Sanitization Schedule</h3>
+                    </div>
+                    <div class="task-grid" id="hkTasks">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Maintenance Dashboard -->
+                <div id="mtDashboard" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h3>Infrastructure Tickets</h3>
+                    </div>
+                    <div class="task-grid" id="mtTasks">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Concierge Dashboard -->
+                <div id="cnDashboard" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h3>Guest Concierge Requests</h3>
+                    </div>
+                    <div class="task-grid" id="cnTasks">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Initialization Script -->
+    <script src="supabase-config.js" type="module"></script>
+    <script src="staff-dashboard.js" type="module"></script>
+</body>
+</html>

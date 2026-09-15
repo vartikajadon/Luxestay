@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeStay - Hotel Management</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="landing-container login-page">
+        <header class="header login-header">
+            <a href="index.html" class="back-btn"><i class="ph ph-arrow-left"></i> Home</a>
+        </header>
+
+        <main class="main-content login-content-area">
+            <div class="login-card">
+                <div class="brand login-brand">
+                    <img src="public/logo.png" alt="LuxeStay Logo" class="logo-small">
+                    <h1 class="app-name-small">LuxeStay</h1>
+                </div>
+
+                <div class="login-form">
+                    <h2 style="font-family: 'Cinzel', serif; color: #D4AF37;">Hotel Admin Login</h2>
+                    <p class="instruction">Enter your credentials to access the Management Command Center.</p>
+                    
+                    <div class="input-group">
+                        <i class="ph ph-envelope"></i>
+                        <input type="email" id="email-input" placeholder="Admin Email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <i class="ph ph-lock"></i>
+                        <input type="password" id="password-input" placeholder="Password" required>
+                    </div>
+
+                    <p class="error-msg" id="auth-error"></p>
+
+                    <button class="login-btn action-btn" id="login-btn">
+                        <span class="btn-text">Authenticate</span>
+                        <i class="ph ph-shield-check"></i>
+                    </button>
+                    
+                    <p class="resend-text" style="margin-top: 20px;">New Administrator? <a href="admin-signup.html" style="color: #D4AF37;">Request Access</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="management-auth.js"></script>
+</body>
+</html>

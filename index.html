@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LuxeStay - Experience the Extraordinary</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js" type="module"></script>
+    <script src="notifications.js" type="module"></script>
+    <style>
+        /* Premium Hero Restoration */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+        }
+
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(255, 255, 255, 0.25),
+                rgba(7, 16, 30, 0.35)
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        #hero-video {
+            filter: brightness(1.4) contrast(1.05) saturate(1.2);
+            will-change: filter, transform;
+            transform: translateZ(0);
+        }
+
+        .hero-content {
+            z-index: 3;
+            width: 90%;
+            max-width: 1000px;
+            animation: fadeInUp 1.5s ease;
+        }
+
+        .hero-logo-large {
+            height: 320px;
+            width: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+            transition: transform 0.5s ease;
+        }
+
+        .hero-logo-large:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+            color: #fff;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Expanded Horizontal Search Hub */
+        .search-hub {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 100px;
+            padding: 15px 15px 15px 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            margin-top: 40px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .search-input-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            min-width: 120px;
+        }
+
+        .search-input-group label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #D4AF37;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .search-input-group input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.85rem;
+            width: 100%;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-group select {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #000; /* Changed to Black */
+            font-size: 0.85rem;
+            width: 100%;
+            outline: none;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 4px;
+        }
+
+        .search-input-group select option {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Theme-aware Date Inputs */
+        input[type="date"] {
+            color-scheme: dark;
+            position: relative;
+        }
+
+        input[type="date"]:focus {
+            color: #D4AF37;
+        }
+
+        /* Improved Calendar Aesthetics */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(65%) sepia(85%) saturate(450%) hue-rotate(10deg) brightness(100%) contrast(100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 5px;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            transform: scale(1.3);
+            filter: invert(80%) sepia(70%) saturate(1000%) hue-rotate(15deg) brightness(110%);
+        }
+
+        .search-divider {
+            width: 1px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-search-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hero-search-input:focus, .hero-search-input:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+
+        .hero-search-btn {
+            background: #D4AF37;
+            color: #07101E;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-search-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            background: #f1c40f;
+        }
+
+        /* Smart Suggestion Badges */
+        .smart-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 5;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .smart-badge.elite { background: linear-gradient(135deg, #D4AF37, #F2D06B); color: #07101E; }
+        .smart-badge.rated { background: rgba(255, 255, 255, 0.9); color: #07101E; }
+        .smart-badge.value { background: #4CAF50; color: #fff; }
+
+        /* Specialty Tags */
+        .specialty-tag {
+            font-size: 0.65rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .specialty-tag.luxury { background: rgba(212, 175, 55, 0.1); color: #D4AF37; border: 1px solid rgba(212, 175, 55, 0.2); }
+        .specialty-tag.family { background: rgba(76, 175, 80, 0.1); color: #4CAF50; border: 1px solid rgba(76, 175, 80, 0.2); }
+
+        /* Professional View Rooms Button */
+        .nav-logo {
+            height: 60px;
+            filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.2));
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-logo:hover {
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+            transform: scale(1.05);
+        }
+
+        .btn-primary, .btn-primary-small {
+            background: #D4AF37;
+            color: #07101E;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 10px 22px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .btn-primary:hover, .btn-primary-small:hover {
+            background: #f1c40f;
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+            color: #07101E;
+        }
+
+        /* Concierge Floating Portal */
+        .concierge-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(7, 16, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #D4AF37;
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(212, 175, 55, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+        }
+
+        .concierge-btn:hover {
+            transform: translateY(-5px);
+            background: #D4AF37;
+            color: #07101E;
+            border-color: #D4AF37;
+        }
+
+        .luxury-modal-content {
+            background: #07101E;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 16px;
+            max-width: 1300px;
+            width: 95%;
+            height: 90vh;
+            margin: 5vh auto;
+            padding: 0;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            animation: modalFadeUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @keyframes modalFadeUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #modal-hotel-header {
+            position: relative;
+            height: 450px;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            background: #07101E;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            overflow: hidden;
+        }
+
+        .modal-hotel-image-side {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .modal-hotel-image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-hotel-image-side::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 30%; height: 100%;
+            background: linear-gradient(to left, #07101E, transparent);
+        }
+
+        .modal-hotel-info-side {
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .modal-hotel-info-side h2 {
+            font-family: 'Cinzel', serif;
+            color: #fff;
+            font-size: 2.5rem;
+            margin: 10px 0;
+            line-height: 1.2;
+        }
+
+        .room-options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            padding: 60px;
+        }
+
+        .room-card {
+            background: rgba(255, 255, 255, 0.02) !important;
+            border: 1px solid rgba(212, 175, 55, 0.1) !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            transition: all 0.4s ease !important;
+            display: flex !important;
+            flex-direction: row !important;
+            height: 350px;
+        }
+
+        .room-card:hover {
+            transform: scale(1.02);
+            border-color: #D4AF37 !important;
+            background: rgba(212, 175, 55, 0.04) !important;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .room-card img {
+            width: 45% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            transition: transform 0.8s ease;
+        }
+
+        .room-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .room-card-info {
+            width: 55% !important;
+            padding: 40px !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .room-card-info h4 {
+            font-size: 2rem !important;
+            font-family: 'Cinzel', serif;
+            margin-bottom: 15px !important;
+        }
+
+        .room-features-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+            color: #B0B7C3;
+            font-size: 0.9rem;
+        }
+
+        .room-features-list span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .room-features-list span i { color: #D4AF37; }
+
+        /* Guide Modal Styles (Restored & Improved) */
+        .concierge-modal-content {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(7, 16, 30, 0.98);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 60px;
+            margin: 10vh auto;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+        }
+
+        .concierge-header h2 {
+            font-family: 'Cinzel', serif;
+            color: #D4AF37;
+            font-size: 2.2rem;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .guide-section {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.05);
+            margin-bottom: 25px;
+            transition: all 0.3s;
+        }
+
+        .guide-section:hover {
+            border-color: rgba(212, 175, 55, 0.2);
+            background: rgba(212, 175, 55, 0.02);
+        }
+
+        .concierge-guide {
+            text-align: left;
+            margin-bottom: 40px;
+        }
+
+        .guide-section {
+            margin-bottom: 30px;
+        }
+
+        .guide-section h3 {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .guide-section h3 i { color: #D4AF37; }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .step span {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .search-hub {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 30px;
+            }
+            .hero-search-btn { width: 100%; border-radius: 10px; margin-top: 10px; }
+        }
+        /* Hotel Assistant Floating Portal (Bottom-Left) */
+        .assistant-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(7, 16, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #D4AF37;
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .assistant-btn:hover {
+            transform: translateY(-5px);
+            background: #D4AF37;
+            color: #07101E;
+        }
+
+        .assistant-window {
+            position: fixed;
+            bottom: 100px;
+            left: 30px;
+            width: 350px;
+            height: 500px;
+            background: rgba(7, 16, 30, 0.95);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            animation: assistantSlideUp 0.3s ease;
+        }
+
+        @keyframes assistantSlideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .assistant-header {
+            padding: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bot-avatar {
+            width: 35px;
+            height: 35px;
+            background: #D4AF37;
+            color: #07101E;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .close-assistant {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .message.bot {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.user {
+            background: #D4AF37;
+            color: #07101E;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            font-weight: 500;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-area input {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 50px;
+            padding: 10px 20px;
+            color: #fff;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .chat-input-area button {
+            background: #D4AF37;
+            color: #07101E;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .suggestions-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            width: 100%;
+            background: rgba(7, 16, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .suggestion-item {
+            padding: 12px 20px;
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+        }
+
+        .chat-input-area button:hover { transform: scale(1.1); }
+        /* Philosophy Section Styling */
+        .philosophy {
+            position: relative;
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2000') center/cover no-repeat fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            overflow: hidden;
+            margin-top: 50px;
+        }
+
+        .philosophy-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(7, 16, 30, 0.7),
+                rgba(0, 0, 0, 0.85)
+            );
+            z-index: 1;
+        }
+
+        .philosophy-content {
+            position: relative;
+            max-width: 800px;
+            padding: 40px;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .philosophy.show .philosophy-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .philo-title {
+            font-size: 0.8rem;
+            letter-spacing: 5px;
+            color: #D4AF37;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .philo-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            font-weight: 500;
+            margin-bottom: 25px;
+            line-height: 1.2;
+        }
+
+        .philo-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #B0B7C3;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .philo-btn {
+            padding: 15px 35px;
+            border: 1px solid #D4AF37;
+            background: transparent;
+            color: #D4AF37;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 0.8rem;
+        }
+
+        .philo-btn:hover {
+            background: #D4AF37;
+            color: #07101E;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            transform: translateY(-3px);
+        }
+
+        /* 360 View feature */
+        .view360-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.9);
+          display: none;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+        }
+
+        .view360-content {
+          width: 90%;
+          height: 85%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+        }
+
+        .view360-content iframe {
+          width: 100%;
+          height: 100%;
+          border-radius: 12px;
+          border: none;
+        }
+        
+        .view360-content .close-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #fff;
+            font-size: 2.5rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .view360-btn {
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(212,175,55,0.3);
+            background: rgba(212,175,55,0.05);
+            color: #D4AF37;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+        }
+        .view360-btn:hover {
+            background: rgba(212,175,55,0.15);
+        }
+
+        #nearMeBtn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50px;
+            padding: 0 25px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.4s ease;
+            height: 55px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #nearMeBtn:hover {
+            background: rgba(212, 175, 55, 0.15) !important;
+            border-color: #D4AF37 !important;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3) !important;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+          .view360-content {
+            width: 95%;
+            height: 60%;
+          }
+          .search-hub {
+            flex-direction: column !important;
+            border-radius: 30px !important;
+            padding: 25px !important;
+            width: 90% !important;
+            max-width: 450px !important;
+            gap: 20px !important;
+            height: auto !important;
+          }
+          .search-divider {
+            display: none !important;
+          }
+          .search-input-group {
+            width: 100% !important;
+            text-align: center !important;
+            min-width: unset !important;
+          }
+          .search-input-group label {
+            text-align: center !important;
+          }
+          .search-input-group input, .search-input-group select {
+            text-align-last: center !important;
+            text-align: center !important;
+          }
+          #nearMeBtn {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+          .hero-search-btn {
+            width: 100% !important;
+            border-radius: 50px !important;
+          }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="public/logo.png" alt="LuxeStay" class="nav-logo" style="height: 60px;">
+        </div>
+        <div class="nav-actions" style="display: flex; align-items: center; gap: 15px;">
+            <!-- 🌐 Language & Currency Toggle -->
+            <div id="langToggle" style="cursor: pointer; font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); padding: 8px 16px; border-radius: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(212, 175, 55, 0.1); color: #D4AF37; min-width: 90px;" title="Toggle Language" onmouseover="this.style.boxShadow='0 0 20px rgba(212, 175, 55, 0.4)'; this.style.borderColor='rgba(212, 175, 55, 0.8)';" onmouseout="this.style.boxShadow='0 0 10px rgba(212, 175, 55, 0.1)'; this.style.borderColor='rgba(212, 175, 55, 0.3)';">
+                <span id="langText">English</span>
+            </div>
+            <a href="login.html" class="btn-primary-small" id="bookBtn">Guest Login</a>
+            <div class="profile-dropdown" id="user-profile" style="display: none;">
+                <button class="profile-toggle">
+                    <i class="ph ph-user-circle"></i>
+                    <span id="nav-username">Guest</span>
+                </button>
+                <div class="dropdown-menu">
+                    <a href="my-bookings.html"><i class="ph ph-calendar-check"></i> View Bookings</a>
+                    <a href="#" id="logout-btn"><i class="ph ph-sign-out"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Heritage Hero Section -->
+    <section class="hero">
+        <video autoplay muted loop playsinline preload="auto" id="hero-video" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;">
+            <source src="/public/video/video.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+            <img src="public/logo.png" alt="LuxeStay" class="hero-logo-large">
+            <h1 class="hero-title" id="welcomeText">Discover the Art of Stay</h1>
+            
+            <div class="search-hub">
+                <div class="search-input-group" style="position: relative;">
+                    <label>Destination</label>
+                    <input type="text" id="dest-input" placeholder="Where to?" autocomplete="off">
+                    <div id="search-suggestions" class="suggestions-dropdown"></div>
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-input-group">
+                    <label>Check-in</label>
+                    <input type="date" id="checkin-input">
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-input-group">
+                    <label>Check-out</label>
+                    <input type="date" id="checkout-input">
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-input-group" style="min-width: 80px;">
+                    <label>Adults</label>
+                    <select id="adults-input">
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-input-group" style="min-width: 80px;">
+                    <label>Children</label>
+                    <select id="children-input">
+                        <option value="0" selected>0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+                <button class="hero-search-btn" id="search-hotels-btn">
+                    <i class="ph ph-magnifying-glass"></i>
+                </button>
+                <button id="nearMeBtn" type="button">
+                    <i class="ph-fill ph-map-pin"></i>
+                    <span>Hotels Near Me</span>
+                </button>
+            </div>
+            <div id="search-error-msg" style="color: #ff4444; font-size: 0.9rem; margin-top: 15px; font-weight: 600; opacity: 0; transition: all 0.3s; transform: translateY(-10px);"></div>
+        </div>
+
+        <a href="#explore" class="scroll-indicator">
+            <span>Discover</span>
+            <i class="ph ph-caret-down"></i>
+        </a>
+    </section>
+    
+    <!-- Heritage Story Section -->
+    <section class="heritage-section">
+        <div class="heritage-content">
+            <span class="section-subtitle" id="legacyTitle" style="color: #D4AF37; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 700;">Our Legacy</span>
+            <h2 class="section-title" id="legacySubtitle" style="font-family: 'Cinzel', serif; color: #fff; font-size: 3rem; margin: 20px 0;">The Art of Timeless Stay</h2>
+            <p class="section-text" id="legacyText" style="color: #B0B7C3; line-height: 1.8; margin-bottom: 0;">For over a century, LuxeStay has been the silent architect of memories. Inspired by the regal hospitality of the East and the refined precision of the West, we curate environments where every second is a masterpiece. From the scent of hand-picked jasmine to the silent glide of our bespoke concierge, we don't just host guests; we preserve legacies.</p>
+        </div>
+        <div class="heritage-image">
+            <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200" alt="LuxeStay Heritage">
+        </div>
+    </section>
+
+    <!-- Signature Amenities Section -->
+    <section class="amenities-section">
+        <div class="section-header" style="text-align: center;">
+            <span class="section-subtitle" style="color: #D4AF37;">Platinum Collection</span>
+            <h2 class="section-title" style="font-family: 'Cinzel', serif; color: #fff; font-size: 2.5rem;">Signature Amenities</h2>
+        </div>
+        <div class="amenities-grid">
+            <div class="amenity-card">
+                <i class="ph ph-waves"></i>
+                <h4>Infinity Pools</h4>
+                <p style="color: #B0B7C3; font-size: 0.9rem;">Edge-to-edge serenity with temperature-controlled crystal waters overlooking global skylines.</p>
+            </div>
+            <div class="amenity-card">
+                <i class="ph ph-leaf"></i>
+                <h4>Holistic Spas</h4>
+                <p style="color: #B0B7C3; font-size: 0.9rem;">Ancient wellness rituals meets modern science in our award-winning sanctuary spaces.</p>
+            </div>
+            <div class="amenity-card">
+                <i class="ph ph-cooking-pot"></i>
+                <h4>Fine Dining</h4>
+                <p style="color: #B0B7C3; font-size: 0.9rem;">Michelin-starred culinary journeys curated by world-renowned executive chefs.</p>
+            </div>
+            <div class="amenity-card">
+                <i class="ph ph-airplane-landing"></i>
+                <h4>Chauffeur Hub</h4>
+                <p style="color: #B0B7C3; font-size: 0.9rem;">Seamless transitions from runway to suite in our fleet of elite electric vehicles.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Global Discovery Section -->
+    <section id="explore" class="section" style="padding: 100px 10%;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle" style="color: #D4AF37; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 700;">Luxury Collections</span>
+                <h2 class="section-title" id="discovery-title" style="font-family: 'Cinzel', serif; color: #fff; font-size: 2.5rem; margin-top: 10px;">Explore Your Stay</h2>
+            </div>
+            <div class="explore-grid" id="hotel-results-grid">
+                <!-- Dynamic cards loaded via script -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Guest Impressions (Testimonials) -->
+    <section class="testimonials-section">
+        <div class="section-header">
+            <span class="section-subtitle" style="color: #D4AF37;">Guest Impressions</span>
+            <h2 class="section-title" style="font-family: 'Cinzel', serif; color: #fff; font-size: 2.5rem;">Voices of the Elite</h2>
+        </div>
+        <div class="testimonial-container">
+            <div class="testimonial-item">
+                <p class="testimonial-text">"LuxeStay redefined what I thought was possible in digital hospitality. The 360° tour was exactly like the suite I entered, and the Smart Room controls made me feel like the property was built specifically for me."</p>
+                <span class="testimonial-author">— Alexandra V., CEO of Veridian Global</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platinum Club Membership -->
+    <section class="club-section">
+        <div class="club-card">
+            <i class="ph-fill ph-crown" style="font-size: 3.5rem; color: #D4AF37; margin-bottom: 30px;"></i>
+            <h2 style="font-family: 'Cinzel', serif; color: #fff; font-size: 2.8rem; margin-bottom: 20px;">Join the Platinum Circle</h2>
+            <p style="color: #B0B7C3; font-size: 1.1rem; margin-bottom: 0; line-height: 1.6;">Unlock a world of unparalleled privilege. Membership grants you immediate access to private floor suites, 24/7 personal butler service, and exclusive rates across our global properties.</p>
+        </div>
+    </section>
+    
+    <!-- Our Philosophy Section -->
+    <section id="philosophySection" class="philosophy">
+        <div class="philosophy-overlay"></div>
+        <div class="philosophy-content">
+            <h2 class="philo-title" id="philoTitle">Our Philosophy</h2>
+            <h3 class="philo-subtitle" id="philoSubtitle">Where Time Slows, and Moments Become Legacy</h3>
+            <p class="philo-text" id="philoText">
+                At LuxeStay, we believe true luxury is not seen—it is felt. 
+                It lives in the silence between footsteps, in the warmth of a perfectly timed gesture, 
+                and in the invisible details that transform a stay into a memory.
+                <br><br>
+                We do not offer rooms. We craft experiences that linger long after departure.
+            </p>
+            <button class="philo-btn" id="philoBtn">Experience the Journey</button>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section faq-section" id="faq" style="background: rgba(7, 16, 30, 0.5); padding: 100px 10%;">
+        <div class="section-header" style="text-align: center; margin-bottom: 60px;">
+            <span class="section-subtitle" style="color: #D4AF37; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 700;">Curated Knowledge</span>
+            <h2 class="section-title" style="font-family: 'Cinzel', serif; color: #fff; font-size: 2.5rem; margin-top: 10px;">Frequently Asked Questions</h2>
+        </div>
+        
+        <div class="faq-accordion" style="max-width: 900px; margin: 0 auto;">
+            <div class="faq-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s;">
+                <div class="faq-question" style="padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                    <h4 style="color: #fff; font-size: 1.1rem; margin: 0; font-weight: 500;">How do I utilize the Smart Room controls?</h4>
+                    <i class="ph ph-plus" style="color: #D4AF37; transition: transform 0.3s;"></i>
+                </div>
+                <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: all 0.4s ease-out; background: rgba(212, 175, 55, 0.02);">
+                    <p style="padding: 0 30px 25px; color: #B0B7C3; line-height: 1.7; margin: 0; font-size: 0.95rem;">Once you arrive at your selected property, your dashboard automatically unlocks the "Smart Room" feature. This allows you to control lighting, climate, and entertainment systems directly from your smartphone via our secure IoT network.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s;">
+                <div class="faq-question" style="padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                    <h4 style="color: #fff; font-size: 1.1rem; margin: 0; font-weight: 500;">What is 360° Room Exploration?</h4>
+                    <i class="ph ph-plus" style="color: #D4AF37; transition: transform 0.3s;"></i>
+                </div>
+                <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: all 0.4s ease-out; background: rgba(212, 175, 55, 0.02);">
+                    <p style="padding: 0 30px 25px; color: #B0B7C3; line-height: 1.7; margin: 0; font-size: 0.95rem;">LuxeStay offers a high-definition digital tour of your specific suite tier. This immersive experience allows you to virtually step into your room before you arrive, helping you get familiar with the layout and premium amenities available.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s;">
+                <div class="faq-question" style="padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                    <h4 style="color: #fff; font-size: 1.1rem; margin: 0; font-weight: 500;">How does Express Checkout work?</h4>
+                    <i class="ph ph-plus" style="color: #D4AF37; transition: transform 0.3s;"></i>
+                </div>
+                <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: all 0.4s ease-out; background: rgba(212, 175, 55, 0.02);">
+                    <p style="padding: 0 30px 25px; color: #B0B7C3; line-height: 1.7; margin: 0; font-size: 0.95rem;">You can skip the reception desk entirely. On your departure day, simply select "Express Checkout" from your dashboard to finalize your bill, leave feedback, and receive your digital invoice instantly via email.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s;">
+                <div class="faq-question" style="padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                    <h4 style="color: #fff; font-size: 1.1rem; margin: 0; font-weight: 500;">Can I request elite services like Fine Dining or Housekeeping?</h4>
+                    <i class="ph ph-plus" style="color: #D4AF37; transition: transform 0.3s;"></i>
+                </div>
+                <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: all 0.4s ease-out; background: rgba(212, 175, 55, 0.02);">
+                    <p style="padding: 0 30px 25px; color: #B0B7C3; line-height: 1.7; margin: 0; font-size: 0.95rem;">Yes, the "Guest Services" panel on your dashboard allows you to order from our gourmet menu or request housekeeping with a single tap. All requests are tracked in real-time by our on-site platinum concierge team.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 12px; margin-bottom: 20px; overflow: hidden; transition: all 0.3s;">
+                <div class="faq-question" style="padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                    <h4 style="color: #fff; font-size: 1.1rem; margin: 0; font-weight: 500;">Is my data and booking history kept secure?</h4>
+                    <i class="ph ph-plus" style="color: #D4AF37; transition: transform 0.3s;"></i>
+                </div>
+                <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: all 0.4s ease-out; background: rgba(212, 175, 55, 0.02);">
+                    <p style="padding: 0 30px 25px; color: #B0B7C3; line-height: 1.7; margin: 0; font-size: 0.95rem;">Absolutely. LuxeStay utilizes enterprise-grade encryption and secure authentication through Supabase to protect your personal details, financial records, and booking history at all times.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Room Modal -->
+    <div id="room-modal" class="modal">
+        <div class="modal-content luxury-modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-hotel-header"></div>
+            <div class="room-options-grid" id="modal-room-list"></div>
+        </div>
+    </div>
+
+    <!-- Concierge Floating Portal -->
+    <button class="concierge-btn" onclick="toggleConcierge()">
+        <i class="ph-fill ph-shield-star"></i>
+        <span>Guide</span>
+    </button>
+
+    <!-- Concierge Help Modal -->
+    <div id="concierge-modal" class="modal">
+        <div class="modal-content concierge-modal-content">
+            <span class="close-modal" onclick="toggleConcierge()">&times;</span>
+            <div class="concierge-header">
+                <i class="ph-fill ph-shield-star" style="font-size: 2.5rem; color: #D4AF37;"></i>
+                <h2>Digital Concierge</h2>
+                <p>Allow us to guide you through your LuxeStay experience.</p>
+            </div>
+            
+            <div class="concierge-guide">
+                <div class="guide-section">
+                    <h3><i class="ph ph-map-trifold"></i> The Discovery Journey</h3>
+                    <div class="guide-steps">
+                        <div class="step"><span>1</span> Search your destination and dates in the hero hub.</div>
+                        <div class="step"><span>2</span> Explore our curated Top 3 Platinum properties.</div>
+                    </div>
+                </div>
+
+                <div class="guide-section">
+                    <h3><i class="ph ph-calendar-check"></i> Securing Your Stay</h3>
+                    <div class="guide-steps">
+                        <div class="step"><span>3</span> Select your preferred suite tier in the room modal.</div>
+                        <div class="step"><span>4</span> Confirm your booking via our secure express flow.</div>
+                    </div>
+                </div>
+
+                <div class="guide-section">
+                    <h3><i class="ph ph-key"></i> Intelligent In-Stay</h3>
+                    <div class="guide-steps">
+                        <div class="step"><span>5</span> Access your Digital Key and IoT services via the Dashboard.</div>
+                        <div class="step"><span>6</span> Order Fine Dining or request Concierge services anytime.</div>
+                    </div>
+                </div>
+
+                <!-- Direct Assistance Section -->
+                <div class="concierge-contact-hub" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(212, 175, 55, 0.2); text-align: left;">
+                    <h3 style="color: #D4AF37; font-size: 1.1rem; margin-bottom: 20px;"><i class="ph ph-headset"></i> Direct Assistance</h3>
+                    <div class="contact-links" style="display: grid; gap: 15px;">
+                        <a href="tel:+919876543210" class="contact-item" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: #fff; font-size: 0.9rem;">
+                            <div style="background: rgba(212, 175, 55, 0.1); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #D4AF37;">
+                                <i class="ph ph-phone"></i>
+                            </div>
+                            <div>
+                                <span style="display: block; font-size: 0.7rem; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px;">India Concierge</span>
+                                +91 98765 43210
+                            </div>
+                        </a>
+                        <a href="tel:+971501234567" class="contact-item" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: #fff; font-size: 0.9rem;">
+                            <div style="background: rgba(212, 175, 55, 0.1); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #D4AF37;">
+                                <i class="ph ph-phone"></i>
+                            </div>
+                            <div>
+                                <span style="display: block; font-size: 0.7rem; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px;">Dubai Concierge</span>
+                                +971 50 123 4567
+                            </div>
+                        </a>
+                        <a href="mailto:support@luxestay.com" class="contact-item" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: #fff; font-size: 0.9rem; margin-top: 10px;">
+                            <div style="background: rgba(212, 175, 55, 0.1); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #D4AF37;">
+                                <i class="ph ph-envelope"></i>
+                            </div>
+                            <div>
+                                <span style="display: block; font-size: 0.7rem; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px;">Hotel Management</span>
+                                support@luxestay.com
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="concierge-footer">
+                <button class="btn-primary-small" onclick="toggleConcierge()">Begin My Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hotel Assistant Floating Portal (Bottom-Left) -->
+    <button class="assistant-btn" onclick="toggleAssistant()">
+        <i class="ph-fill ph-robot"></i>
+        <span>Hotel Assistant</span>
+    </button>
+
+    <!-- Hotel Assistant Chat Window -->
+    <div id="assistant-window" class="assistant-window">
+        <div class="assistant-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="bot-avatar"><i class="ph-fill ph-robot"></i></div>
+                <div>
+                    <h4 style="margin: 0; font-size: 0.9rem;">LuxeStay AI</h4>
+                    <span style="font-size: 0.7rem; color: #4CAF50;">● Online</span>
+                </div>
+            </div>
+            <button class="close-assistant" onclick="toggleAssistant()">&times;</button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot">Welcome to LuxeStay! I am your personal AI assistant. How can I help you today?</div>
+        </div>
+        
+        <!-- Pre-selected Helper Options Panel -->
+        <div class="chat-helpers" style="display: flex; gap: 8px; overflow-x: auto; padding: 12px 15px; background: rgba(10, 20, 38, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.05); scrollbar-width: none; -ms-overflow-style: none;">
+            <style>
+                .chat-helpers::-webkit-scrollbar { display: none; }
+                .chat-helper-btn { flex-shrink: 0; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 20px; padding: 6px 14px; color: #fff; font-size: 0.75rem; font-family: inherit; cursor: pointer; transition: all 0.2s ease; font-weight: 500; }
+                .chat-helper-btn:hover { background: rgba(212, 175, 55, 0.2) !important; border-color: #D4AF37 !important; transform: translateY(-1px); }
+                .chat-helper-btn:active { transform: scale(0.95); }
+            </style>
+            <button class="chat-helper-btn" onclick="sendChatHelper('Book Room')">
+                🛎️ Book Room
+            </button>
+            <button class="chat-helper-btn" onclick="sendChatHelper('Elite Rooms')">
+                🏨 Elite Rooms
+            </button>
+            <button class="chat-helper-btn" onclick="sendChatHelper('Hotel Amenities')">
+                ✨ Amenities
+            </button>
+            <button class="chat-helper-btn" onclick="sendChatHelper('Elite Weddings')">
+                💍 Weddings
+            </button>
+            <button class="chat-helper-btn" onclick="sendChatHelper('Corporate Events')">
+                💼 Corporate
+            </button>
+            <button class="chat-helper-btn" onclick="sendChatHelper('Help & Support')">
+                ❓ Help
+            </button>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask about booking, rooms, services..." onkeypress="handleChatKey(event)">
+            <button onclick="sendMessage()"><i class="ph-fill ph-paper-plane-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Grand Footer -->
+    <footer class="grand-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <img src="public/logo.png" alt="LuxeStay" style="height: 60px; margin-bottom: 25px;">
+                <p style="color: #B0B7C3; font-size: 0.9rem; line-height: 1.7;">LuxeStay is the world's premier digital hospitality portal, blending heritage elegance with intelligent technology to curate the art of the stay.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Destinations</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Dubai Platinum</a></li>
+                    <li><a href="#">Parisian Heritage</a></li>
+                    <li><a href="#">Jaipur Royal</a></li>
+                    <li><a href="#">London Executive</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Privileges</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Platinum Club</a></li>
+                    <li><a href="#">Private Jet Hub</a></li>
+                    <li><a href="#">Elite Concierge</a></li>
+                    <li><a href="#">Gourmet Passport</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Concierge Hub</h4>
+                <p style="color: #fff; font-size: 0.9rem; margin-bottom: 15px;"><i class="ph ph-phone" style="color: #D4AF37;"></i> +91 98765 43210</p>
+                <p style="color: #fff; font-size: 0.9rem; margin-bottom: 15px;"><i class="ph ph-envelope" style="color: #D4AF37;"></i> elite@luxestay.com</p>
+                <div style="display: flex; gap: 15px; margin-top: 25px;">
+                    <a href="#" style="color: #D4AF37; font-size: 1.5rem;"><i class="ph ph-instagram-logo"></i></a>
+                    <a href="#" style="color: #D4AF37; font-size: 1.5rem;"><i class="ph ph-linkedin-logo"></i></a>
+                    <a href="#" style="color: #D4AF37; font-size: 1.5rem;"><i class="ph ph-facebook-logo"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 LuxeStay International. All Rights Reserved.</p>
+            <div style="display: flex; gap: 30px;">
+                <a href="#" style="color: inherit;">Privacy Policy</a>
+                <a href="#" style="color: inherit;">Terms of Service</a>
+                <a href="javascript:void(0)" onclick="window.location.href = '/partner-login.html';" style="color: inherit;" id="kmvudw">Partner Restaurant</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+
+        const SAMPLE_HOTELS = [
+            { id: 1, name: 'Burj Al Arab Jumeirah', city: 'Dubai', country: 'UAE', rating: 5.0, price: 2500, img: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=1400' },
+            { id: 2, name: 'LuxeStay Palace Vendôme', city: 'Paris', country: 'France', rating: 4.9, price: 1800, img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1400' },
+            { id: 3, name: 'LuxeStay Azure Sands', city: 'Goa', country: 'India', rating: 4.8, price: 850, img: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1400' }
+        ];
+
+        // Elite Discovery Engine Logic
+        let hotelsData = []; // Store the latest search results for global access
+
+        function renderHotels(hotels) {
+            const grid = document.getElementById('hotel-results-grid');
+            if (!grid) return;
+            
+            hotelsData = hotels; // Save data for Event Delegation
+            console.log("Hotels data received:", hotels);
+
+            if (!hotels || hotels.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px;"><h3>No luxury stays found.</h3><p>Try searching for Dubai, Jaipur, or Goa.</p></div>';
+                return;
+            }
+
+            // Elite Sorting: Sort by distance if available, otherwise by rating
+            const hasDistance = hotels.some(h => h.distance !== undefined);
+            const filteredHotels = [...hotels]
+                .sort((a, b) => {
+                    if (hasDistance) {
+                        return (a.distance || 0) - (b.distance || 0);
+                    }
+                    return b.rating - a.rating;
+                })
+                .slice(0, 3);
+            
+            console.log("Filtered hotels (Top 3):", filteredHotels);
+
+            grid.innerHTML = filteredHotels.map((hotel, index) => {
+                const hotelName = hotel.hotel_name || hotel.name;
+                const hotelImg = hotel.img || hotel.image_url;
+                const distanceStr = hotel.distance !== undefined ? ` • <span style="color: #D4AF37; font-weight: 600;"><i class="ph-fill ph-map-pin"></i> ${hotel.distance.toFixed(1)} km away</span>` : '';
+                return `
+                <div class="explore-card fade-in-up visible" style="animation-delay: ${index * 0.1}s">
+                    <div class="card-img-wrapper">
+                        <img src="${hotelImg}" alt="${hotelName}">
+                        <div class="card-badge"><i class="ph-fill ph-star" style="color: #D4AF37;"></i> ${hotel.rating}</div>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-tag">${hotel.city}, ${hotel.country}${distanceStr}</span>
+                        <h3>${hotelName}</h3>
+                        <div class="card-price">From <span class="price" data-price="${hotel.price}">₹${hotel.price}</span><span>/night</span></div>
+                        <button class="btn-primary-small view-rooms-btn" data-id="${hotel.id}">View Rooms</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // CRITICAL FIX: Event Delegation for Dynamic Content
+        document.getElementById('hotel-results-grid').addEventListener('click', function(e) {
+            if (e.target.classList.contains('view-rooms-btn')) {
+                const hotelId = e.target.dataset.id;
+                const selectedHotel = hotelsData.find(h => h.id == hotelId);
+                if (selectedHotel) openRoomModal(selectedHotel);
+            }
+        });
+
+        // Elite Multi-Step Booking Flow Logic
+        let currentBookingData = {};
+
+        async function openRoomModal(hotel) {
+            const modal = document.getElementById('room-modal');
+            const hotelName = hotel.hotel_name || hotel.name;
+            currentBookingData = { 
+                hotelName: hotelName, 
+                hotelPrice: hotel.price,
+                city: hotel.city,
+                country: hotel.country
+            };
+            
+            // Fetch real reviews from DB
+            const reviews = await LuxeDB.getReviews(hotelName);
+            
+            showRoomSelectionStep(hotel, reviews);
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showRoomSelectionStep(hotel, reviews = []) {
+            const hotelName = hotel.hotel_name || hotel.name;
+            const hotelImg = hotel.img || hotel.image_url;
+            
+            document.getElementById('modal-hotel-header').innerHTML = `
+                <div class="modal-hotel-image-side">
+                    <img src="${hotelImg}" alt="${hotelName}">
+                </div>
+                <div class="modal-hotel-info-side">
+                    <span style="color: #D4AF37; text-transform: uppercase; letter-spacing: 3px; font-size: 0.7rem; font-weight: 700;">Platinum Tier Property</span>
+                    <h2>${hotelName}</h2>
+                    <div style="display: flex; gap: 20px; margin: 15px 0;">
+                        <span style="color: #D4AF37;"><i class="ph-fill ph-star"></i> ${hotel.rating}</span>
+                        <span style="color: #B0B7C3;"><i class="ph ph-map-pin"></i> ${hotel.city}</span>
+                    </div>
+                    
+                    <div class="hotel-details-mini" style="margin-top: 20px;">
+                        <h4 style="color: #fff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Services & Amenities</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            ${(hotel.amenities || ['WiFi', 'Pool', 'Spa', 'Fine Dining']).map(a => `<span style="background: rgba(212,175,55,0.1); color: #D4AF37; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem;">${a}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 25px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+                        <div style="display: flex; align-items: baseline; gap: 15px; background: rgba(212,175,55,0.08); padding: 20px; border-radius: 12px; border: 1px solid rgba(212,175,55,0.2); width: fit-content;">
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="color: #B0B7C3; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Starting from</span>
+                                <div style="display: flex; align-items: baseline; gap: 8px;">
+                                    <span class="price" data-price="${hotel.price}" style="color: #D4AF37; font-size: 2.8rem; font-weight: 800; font-family: 'Cinzel', serif;">₹${hotel.price}</span>
+                                    <span style="color: #B0B7C3; font-size: 0.9rem;">/ per night</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const rooms = [
+                { type: "Deluxe Room", price: hotel.price, features: "King Bed, City View, Marble Bath", img: "assets/deluxe_room_custom.png" },
+                { type: "Luxury Suite", price: hotel.price + 500, features: "Living Area, Private Butler, Spa Access", img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1000" },
+                { type: "Balcony View Room", price: hotel.price + 300, features: "Private Terrace, Sea View, Gourmet Bar", img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1000" },
+                { type: "Presidential Suite", price: hotel.price + 1500, features: "Panoramic View, Infinity Pool, 24/7 Chef", img: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?q=80&w=1000" }
+            ];
+
+            document.getElementById('modal-room-list').innerHTML = `
+                <h3 style="color: #fff; margin-bottom: 20px; font-family: 'Cinzel', serif;">Choose Your Accommodation</h3>
+                <div class="room-options-grid">
+                    ${rooms.map(room => `
+                        <div class="room-card">
+                            <img src="${room.img}" alt="${room.type}">
+                            <div class="room-card-info">
+                                <h4 style="color: #D4AF37;">${room.type}</h4>
+                                <div class="room-features-list">
+                                    <span><i class="ph ph-bed"></i> King Size Bed</span>
+                                    <span><i class="ph ph-mountains"></i> ${room.features.split(',')[1] || 'Scenic View'}</span>
+                                    <span><i class="ph ph-bathtub"></i> ${room.features.split(',')[2] || 'Luxury Bath'}</span>
+                                    <span><i class="ph ph-coffee"></i> Breakfast Inc.</span>
+                                </div>
+                                <p style="color: #666; font-size: 0.85rem; margin-bottom: 25px;">Experience the height of luxury in our meticulously designed ${room.type.toLowerCase()}.</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-size: 0.7rem; color: #D4AF37; text-transform: uppercase; letter-spacing: 2px;">Premium Rate</span>
+                                        <span style="font-size: 2rem; font-weight: 800; color: #fff;"><span class="price" data-price="${room.price}">₹${room.price}</span><span style="font-size: 0.9rem; font-weight: 400; color: #B0B7C3; margin-left: 5px;">/ night</span></span>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button class="view360-btn" onclick="open360View('${room.type}')">View 360°</button>
+                                        <button class="btn-primary-small" style="padding: 15px 40px; font-size: 0.9rem;" onclick="proceedToBookingForm('${room.type}', ${room.price})">Select Suite</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="reviews-section" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid rgba(212,175,55,0.1);">
+                    <h4 style="color: #fff; margin-bottom: 20px; font-family: 'Cinzel', serif;">Guest Impressions</h4>
+                    <div style="display: grid; gap: 15px;">
+                        ${reviews.map(review => `
+                            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="color: #D4AF37; font-weight: 600; font-size: 0.9rem;">${review.user_name}</span>
+                                    <span style="color: #D4AF37; font-size: 0.8rem;"><i class="ph-fill ph-star"></i> ${review.rating}</span>
+                                </div>
+                                <p style="font-style: italic; color: #B0B7C3; font-size: 0.85rem; line-height: 1.5;">"${review.comment}"</p>
+                            </div>
+                        `).join('')}
+                        ${reviews.length === 0 ? '<p style="color: #B0B7C3; font-size: 0.85rem;">Be the first to share your experience.</p>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function proceedToBookingForm(roomType, price) {
+            currentBookingData.roomType = roomType;
+            currentBookingData.price = price;
+            
+            // Dynamic 360 Linking: Store selected room for exploration
+            localStorage.setItem("selectedRoom", JSON.stringify({
+              roomType: roomType,
+              hotelName: currentBookingData.hotelName
+            }));
+            
+            const user = await LuxeDB.getUser();
+            
+            document.getElementById('modal-room-list').innerHTML = `
+                <div class="booking-form-step">
+                    <h3 style="color: #D4AF37; margin-bottom: 25px; font-family: 'Cinzel', serif;">Reservation Details</h3>
+                    <div style="display: grid; gap: 20px; max-width: 500px; margin: 0 auto;">
+                        <div class="form-group">
+                            <label style="display: block; color: #B0B7C3; font-size: 0.8rem; margin-bottom: 8px;">Full Name</label>
+                            <input type="text" id="book-name" value="${user?.user_metadata?.full_name || ''}" placeholder="Enter your name" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); color: #fff; border-radius: 6px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; color: #B0B7C3; font-size: 0.8rem; margin-bottom: 8px;">Email Address</label>
+                            <input type="email" id="book-email" value="${user?.email || ''}" placeholder="Enter your email" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); color: #fff; border-radius: 6px;">
+                            <div id="email-error" style="color: #ff4444; font-size: 0.75rem; margin-top: 5px; display: none;">Please enter a valid email address</div>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; color: #B0B7C3; font-size: 0.8rem; margin-bottom: 8px;">Phone Number</label>
+                            <input type="tel" id="book-phone" placeholder="+1 (555) 000-0000" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); color: #fff; border-radius: 6px;">
+                            <div id="phone-error" style="color: #ff4444; font-size: 0.75rem; margin-top: 5px; display: none;">invalid number, Please enter valid number</div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="book-terms" style="accent-color: #D4AF37;">
+                                <label for="book-terms" style="color: #fff; font-size: 0.85rem;">I agree to the <span style="color: #D4AF37; cursor: pointer; text-decoration: underline;" onclick="toggleTermsDisplay()">Terms & Conditions</span></label>
+                            </div>
+                            <div id="terms-display-area" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border: 1px solid rgba(212,175,55,0.1); border-radius: 8px; margin-top: 15px; font-size: 0.75rem; color: #B0B7C3; max-height: 120px; overflow-y: auto; line-height: 1.6; text-align: left;">
+                                <strong style="color: #D4AF37;">LuxeStay Reservation Policy</strong><br><br>
+                                1. **Confirmation**: All bookings are final upon successful payment authorization.<br>
+                                2. **Cancellation**: Cancellations made 72 hours prior to arrival are eligible for a full refund. Within 72 hours, a one-night fee applies.<br>
+                                3. **Conduct**: Guests must adhere to property-specific luxury conduct guidelines. Damaged property will be billed to the guest account.<br>
+                                4. **Privacy**: Your data is handled in accordance with international hospitality privacy standards.<br>
+                                5. **Liability**: LuxeStay provides the booking platform and is not liable for on-site property accidents.
+                            </div>
+                        </div>
+                        <div id="booking-error" style="color: #ff4444; font-size: 0.8rem; display: none;">Please accept terms to continue</div>
+                        <button class="btn-primary" style="margin-top: 20px;" onclick="validateAndPay()">Proceed to Payment</button>
+                        <button class="btn-secondary" onclick="showRoomSelectionStep({name: '${currentBookingData.hotelName}', price: ${currentBookingData.hotelPrice}})" style="font-size: 0.8rem;">Change Room</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleTermsDisplay() {
+            const area = document.getElementById('terms-display-area');
+            area.style.display = area.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function validateAndPay() {
+            const terms = document.getElementById('book-terms').checked;
+            const name = document.getElementById('book-name').value;
+            const email = document.getElementById('book-email').value;
+            const phone = document.getElementById('book-phone').value;
+
+            // Strict validations
+            const phoneRegex = /^[0-9]{10}$/;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (!name || !email || !phone) {
+                NotificationSystem.showToast("Please fill in all guest details.", "error");
+                return;
+            }
+
+            if (!emailRegex.test(email)) {
+                document.getElementById('email-error').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('email-error').style.display = 'none';
+            }
+
+            if (!phoneRegex.test(phone)) {
+                document.getElementById('phone-error').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('phone-error').style.display = 'none';
+            }
+
+            if (!terms) {
+                document.getElementById('booking-error').style.display = 'block';
+                return;
+            }
+
+            currentBookingData.guestName = name;
+            currentBookingData.guestEmail = email;
+            currentBookingData.guestPhone = phone;
+
+            showPaymentStep();
+        }
+
+        function showPaymentStep() {
+            document.getElementById('modal-room-list').innerHTML = `
+                <div class="payment-step" style="text-align: center; padding: 40px 0;">
+                    <h3 style="color: #D4AF37; margin-bottom: 30px; font-family: 'Cinzel', serif;">Secure Checkout</h3>
+                    <div class="payment-summary" style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 12px; margin-bottom: 30px; text-align: left;">
+                        <p style="color: #B0B7C3; font-size: 0.9rem; margin-bottom: 10px;">Property: <strong style="color: #fff;">${currentBookingData.hotelName}</strong></p>
+                        <p style="color: #B0B7C3; font-size: 0.9rem; margin-bottom: 10px;">Suite: <strong style="color: #fff;">${currentBookingData.roomType}</strong></p>
+                        <p style="color: #B0B7C3; font-size: 1.1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">Total Investment: <strong style="color: #D4AF37;"><span class="price" data-price="${currentBookingData.price}">₹${currentBookingData.price}</span></strong></p>
+                    </div>
+
+                    <div id="payment-methods-view" style="text-align: left;">
+                        <h4 style="color: #fff; margin-bottom: 15px; font-size: 1rem;">Select Payment Method</h4>
+                        
+                        <div class="payment-method" onclick="showUPIQR()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: all 0.3s;">
+                            <i class="ph ph-qr-code" style="font-size: 1.5rem; color: #D4AF37;"></i>
+                            <div>
+                                <span style="display: block; color: #fff; font-weight: 600;">UPI / QR Scanner</span>
+                                <span style="color: #B0B7C3; font-size: 0.8rem;">Google Pay, PhonePe, Paytm</span>
+                            </div>
+                        </div>
+
+                        <div class="payment-method" onclick="showCardPayment()" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: all 0.3s;">
+                            <i class="ph ph-credit-card" style="font-size: 1.5rem; color: #D4AF37;"></i>
+                            <div>
+                                <span style="display: block; color: #fff; font-weight: 600;">Credit / Debit Card</span>
+                                <span style="color: #B0B7C3; font-size: 0.8rem;">Visa, MasterCard, Amex</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="payment-qr-view" style="display: none; text-align: center;">
+                        <h4 style="color: #fff; margin-bottom: 15px; font-size: 1rem;">Scan with any UPI App</h4>
+                        <div style="background: #fff; padding: 20px; border-radius: 12px; display: inline-block; margin-bottom: 20px;">
+                            <!-- Generic mock QR code -->
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="UPI QR Code" style="width: 150px; height: 150px;">
+                        </div>
+                        <p style="color: #B0B7C3; font-size: 0.9rem; margin-bottom: 20px;">Scan to pay <strong style="color: #D4AF37;">₹${currentBookingData.price}</strong></p>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn-secondary" onclick="showPaymentMethods()" style="font-size: 0.85rem; padding: 10px 20px;">Back</button>
+                            <button class="btn-primary" onclick="processMockPayment()" style="font-size: 0.85rem; padding: 10px 20px;">I have paid</button>
+                        </div>
+                    </div>
+
+                    <div id="payment-card-view" style="display: none; text-align: left;">
+                        <h4 style="color: #fff; margin-bottom: 15px; font-size: 1rem;">Enter Card Details</h4>
+                        <div style="display: grid; gap: 15px; margin-bottom: 20px;">
+                            <input type="text" placeholder="Card Number" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); color: #fff; border-radius: 6px;">
+                            <div style="display: flex; gap: 15px;">
+                                <input type="text" placeholder="MM/YY" style="width: 50%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); color: #fff; border-radius: 6px;">
+                                <input type="text" placeholder="CVV" style="width: 50%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3); color: #fff; border-radius: 6px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: space-between;">
+                            <button class="btn-secondary" onclick="showPaymentMethods()" style="font-size: 0.85rem; padding: 12px 20px; width: 48%;">Back</button>
+                            <button class="btn-primary" onclick="processMockPayment()" style="font-size: 0.85rem; padding: 12px 20px; width: 48%;">Pay ₹${currentBookingData.price}</button>
+                        </div>
+                    </div>
+
+                    <div id="payment-loading" style="display: none;">
+                        <div class="loader"></div>
+                        <p style="color: #D4AF37; margin-top: 15px; letter-spacing: 2px;">AUTHORIZING TRANSACTION...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.showUPIQR = function() {
+            document.getElementById('payment-methods-view').style.display = 'none';
+            document.getElementById('payment-qr-view').style.display = 'block';
+        }
+
+        window.showCardPayment = function() {
+            document.getElementById('payment-methods-view').style.display = 'none';
+            document.getElementById('payment-card-view').style.display = 'block';
+        }
+
+        window.showPaymentMethods = function() {
+            document.getElementById('payment-qr-view').style.display = 'none';
+            document.getElementById('payment-card-view').style.display = 'none';
+            document.getElementById('payment-methods-view').style.display = 'block';
+        }
+
+        async function processMockPayment() {
+            const loading = document.getElementById('payment-loading');
+            
+            // Hide all other views
+            const methods = document.getElementById('payment-methods-view');
+            const qr = document.getElementById('payment-qr-view');
+            const card = document.getElementById('payment-card-view');
+            
+            if (methods) methods.style.display = 'none';
+            if (qr) qr.style.display = 'none';
+            if (card) card.style.display = 'none';
+
+            loading.style.display = 'block';
+
+            // Mock 3-second delay
+            setTimeout(async () => {
+                await finalizeBooking();
+            }, 3000);
+        }
+
+        async function finalizeBooking() {
+            const bookingId = "BK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            // Generate Structured Hotel ID (COUNTRY-CITY-CODE)
+            // Example: UAE-DUBAI-BJA for Burj Al Arab
+            const hotelAbbr = currentBookingData.hotelName.split(' ').map(w => w[0]).join('').toUpperCase();
+            const countryAbbr = (currentBookingData.country || 'AE').toUpperCase();
+            const cityAbbr = (currentBookingData.city || 'DXB').toUpperCase();
+            const structuredHotelId = `${countryAbbr}-${cityAbbr}-${hotelAbbr}`;
+
+            const booking = {
+                hotelName: currentBookingData.hotelName,
+                roomName: currentBookingData.roomType,
+                price: currentBookingData.price,
+                checkIn: document.getElementById('checkin-input').value || new Date().toISOString().split('T')[0],
+                checkOut: document.getElementById('checkout-input').value || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                guests: parseInt(document.getElementById('adults-input').value) + parseInt(document.getElementById('children-input').value),
+                hotel_id: structuredHotelId // Assign the professional code
+            };
+
+            // Ensure profile exists for the guest (needed for DB reference)
+            await LuxeDB.upsertProfile(currentBookingData.guestEmail, currentBookingData.guestName);
+            
+            // Save to Supabase (saveBooking now handles unique room generation)
+            localStorage.setItem('guestEmail', currentBookingData.guestEmail);
+            localStorage.setItem('guestName', currentBookingData.guestName);
+            
+            const saved = await LuxeDB.saveBooking(booking);
+            const finalRoomNumber = saved ? saved.room : "N/A";
+
+            document.getElementById('modal-room-list').innerHTML = `
+                <div class="confirmation-step" style="text-align: center; padding: 40px 0;">
+                    <div style="font-size: 4rem; color: #4CAF50; margin-bottom: 20px;">
+                        <i class="ph-fill ph-check-circle"></i>
+                    </div>
+                    <h2 style="color: #fff; font-family: 'Cinzel', serif; margin-bottom: 10px;">Booking Confirmed</h2>
+                    <p style="color: #B0B7C3; margin-bottom: 30px;">Your elite reservation has been secured successfully.</p>
+                    
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.2); padding: 25px; border-radius: 12px; text-align: left; max-width: 400px; margin: 0 auto 30px;">
+                        <p style="color: #B0B7C3; font-size: 0.8rem; margin-bottom: 5px;">Property Code</p>
+                        <h4 style="color: #D4AF37; margin-bottom: 15px;">${structuredHotelId}</h4>
+                        <p style="color: #B0B7C3; font-size: 0.8rem; margin-bottom: 5px;">Assigned Suite</p>
+                        <h4 style="color: #fff; margin-bottom: 15px;">Room ${finalRoomNumber}</h4>
+                        <p style="color: #B0B7C3; font-size: 0.8rem; margin-bottom: 5px;">Property</p>
+                        <h4 style="color: #fff; margin-bottom: 15px;">${currentBookingData.hotelName}</h4>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="window.location.href='dashboard.html'">Go to Dashboard</button>
+                </div>
+            `;
+            
+            NotificationSystem.add("Luxury stay confirmed! Check your dashboard.", "success");
+        }
+
+        // Hotel Assistant Logic
+        function toggleAssistant() {
+            const win = document.getElementById('assistant-window');
+            win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            input.value = '';
+
+            // Bot Logic
+            setTimeout(() => {
+                const response = getBotResponse(text);
+                addMessage(response, 'bot');
+            }, 600);
+        }
+
+        window.sendChatHelper = function(helperText) {
+            addMessage(helperText, 'user');
+            
+            // Bot Logic
+            setTimeout(() => {
+                const response = getBotResponse(helperText);
+                addMessage(response, 'bot');
+            }, 600);
+        };
+
+        function addMessage(text, sender) {
+            const container = document.getElementById('chat-messages');
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}`;
+            msg.textContent = text;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function getBotResponse(input) {
+            const q = input.toLowerCase();
+            if (q.includes('book')) return "To book a room, simply select your destination in the search bar above, choose a hotel, and click 'View Rooms' to proceed to checkout.";
+            if (q.includes('room')) return "We offer 4 levels of elite accommodations: Deluxe Rooms, Heritage Suites, Balcony View Rooms, and our signature Presidential Suites.";
+            if (q.includes('amenities')) return "Our platinum properties include High-speed WiFi, Infinity Pools, Holistic Spas, and 24/7 Fine Dining.";
+            if (q.includes('contact') || q.includes('help')) return "You can find our direct contact details for India and Dubai in the 'Concierge' panel at the bottom-right.";
+            
+            // Platinum Events & Celebrations Upgrade
+            if (q.includes('wedding') || q.includes('marriage') || q.includes('celebration')) {
+                return "LuxeStay is the premier choice for 'Weddings of a Lifetime.' We offer grand ballrooms, bespoke floral arrangements, and personalized menu planning. Please contact our Events Concierge for a private consultation.";
+            }
+            if (q.includes('corporate') || q.includes('meeting') || q.includes('conference') || q.includes('event')) {
+                return "For executive events, we provide state-of-the-art boardrooms, high-capacity banquet halls, and dedicated networking lounges. We can curate everything from board meetings to global summits.";
+            }
+
+            if (q.includes('dubai') || q.includes('jaipur') || q.includes('bhopal') || q.includes('goa')) return "Excellent choice! You can search for these cities directly in our Discovery hub to see our Top 3 curated properties.";
+            
+            return "I am here to ensure your LuxeStay experience is seamless! For additional queries or specialized assistance, please contact our Concierge at +91 98765 43210 (India) or +971 50 123 4567 (Dubai).";
+        }
+
+        function toggleConcierge() {
+            const modal = document.getElementById('concierge-modal');
+            const isVisible = modal.style.display === 'block';
+            modal.style.display = isVisible ? 'none' : 'block';
+            document.body.style.overflow = isVisible ? 'auto' : 'hidden';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Date Selection Logic
+            const checkin = document.getElementById('checkin-input');
+            const checkout = document.getElementById('checkout-input');
+            const today = new Date().toISOString().split("T")[0];
+            
+            checkin.setAttribute("min", today);
+            checkout.setAttribute("min", today);
+
+            checkin.addEventListener("change", function() {
+                checkout.setAttribute("min", this.value);
+                if (checkout.value && checkout.value < this.value) {
+                    checkout.value = this.value;
+                }
+            });
+
+            // Smart Auto-Fill Search
+            const cities = ["Dubai", "Delhi", "Mumbai", "Jaipur", "Paris", "London", "Singapore", "Goa", "Bhopal"];
+            const destInput = document.getElementById('dest-input');
+            const suggestionsDiv = document.getElementById('search-suggestions');
+
+            destInput.addEventListener("input", function() {
+                const value = this.value.toLowerCase();
+                suggestionsDiv.innerHTML = "";
+                
+                if (!value) {
+                    suggestionsDiv.style.display = "none";
+                    return;
+                }
+
+                const filtered = cities.filter(city => city.toLowerCase().includes(value));
+                
+                if (filtered.length > 0) {
+                    filtered.forEach(city => {
+                        const item = document.createElement("div");
+                        item.className = "suggestion-item";
+                        item.textContent = city;
+                        item.onclick = () => {
+                            destInput.value = city;
+                            suggestionsDiv.style.display = "none";
+                        };
+                        suggestionsDiv.appendChild(item);
+                    });
+                    suggestionsDiv.style.display = "flex";
+                } else {
+                    suggestionsDiv.style.display = "none";
+                }
+            });
+
+            // Close suggestions when clicking outside
+            document.addEventListener("click", (e) => {
+                if (!destInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.style.display = "none";
+                }
+            });
+
+            renderHotels(SAMPLE_HOTELS);
+
+            const searchBtn = document.getElementById('search-hotels-btn');
+            const searchError = document.getElementById('search-error-msg');
+
+            const showSearchError = (msg) => {
+                searchError.textContent = msg;
+                searchError.style.opacity = '1';
+                searchError.style.transform = 'translateY(0)';
+                NotificationSystem.showToast(msg, "error");
+                
+                setTimeout(() => {
+                    searchError.style.opacity = '0';
+                    searchError.style.transform = 'translateY(-10px)';
+                }, 4000);
+            };
+
+            searchBtn.onclick = async () => {
+                const city = document.getElementById('dest-input').value;
+                const checkinDate = document.getElementById('checkin-input').value;
+                const checkoutDate = document.getElementById('checkout-input').value;
+
+                // Reset highlighting
+                document.getElementById('checkin-input').parentElement.style.borderColor = 'rgba(212, 175, 55, 0.3)';
+                document.getElementById('checkout-input').parentElement.style.borderColor = 'rgba(212, 175, 55, 0.3)';
+                searchError.style.opacity = '0';
+
+                if (!city) { 
+                    showSearchError("Please enter a destination");
+                    return; 
+                }
+
+                if (!checkinDate || !checkoutDate) {
+                    showSearchError("Please select check-in and check-out dates");
+                    if (!checkinDate) document.getElementById('checkin-input').parentElement.style.borderColor = '#ff4444';
+                    if (!checkoutDate) document.getElementById('checkout-input').parentElement.style.borderColor = '#ff4444';
+                    return;
+                }
+
+                if (new Date(checkoutDate) <= new Date(checkinDate)) {
+                    showSearchError("Check-out date must be after check-in date");
+                    document.getElementById('checkout-input').parentElement.style.borderColor = '#ff4444';
+                    return;
+                }
+
+                console.log("Search initiated:", { city, checkinDate, checkoutDate });
+
+                const grid = document.getElementById('hotel-results-grid');
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 100px;"><i class="ph ph-spinner ph-spin" style="font-size: 3rem; color: #D4AF37;"></i><p style="margin-top:20px;">Curating your personalized stay...</p></div>';
+                
+                // FIXED: Cinematic scroll to results
+                document.getElementById('explore').scrollIntoView({ behavior: 'smooth' });
+
+                try {
+                    const response = await fetch(`/api/hotels/search?city=${encodeURIComponent(city)}`);
+                    const data = await response.json();
+                    renderHotels(data);
+                    if (data.length > 0) document.getElementById('discovery-title').textContent = `Luxury Stays in ${city}`;
+                } catch (error) {
+                    console.error("Search API Error:", error);
+                    renderHotels(SAMPLE_HOTELS);
+                }
+            };
+
+
+            // "Hotels Near Me" Geolocation Discovery
+            const nearMeBtn = document.getElementById('nearMeBtn');
+
+            // Hardcoded premium coordinates matching curated database schema
+            const HOTEL_COORDINATES = {
+                'Armani Hotel Dubai': { lat: 25.1972, lon: 55.2744 },
+                'Atlantis The Royal': { lat: 25.1380, lon: 55.1200 },
+                'Address Dubai Marina': { lat: 25.0780, lon: 55.1400 },
+                'Taj Lake Palace': { lat: 24.5756, lon: 73.6800 },
+                'The Leela Palace': { lat: 23.2300, lon: 77.4300 },
+                'ITC Maurya': { lat: 28.5975, lon: 77.1700 },
+                'The Oberoi Mumbai': { lat: 18.9275, lon: 72.8200 },
+                'Rambagh Palace': { lat: 26.8970, lon: 75.8080 },
+                'W Goa': { lat: 15.5970, lon: 73.7350 },
+                'Hôtel Plaza Athénée': { lat: 48.8667, lon: 2.3015 },
+                'The Savoy': { lat: 51.5100, lon: -0.1200 },
+                'Marina Bay Sands': { lat: 1.2830, lon: 103.8600 }
+            };
+
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Radius of the Earth in km
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) *
+                    Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) *
+                    Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            }
+
+            async function findNearbyHotels(userLat, userLon) {
+                const grid = document.getElementById('hotel-results-grid');
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 100px;"><i class="ph ph-spinner ph-spin" style="font-size: 3rem; color: #D4AF37;"></i><p style="margin-top:20px; font-family: \'Cinzel\', serif; color: #D4AF37; letter-spacing: 2px;">Finding luxury stays near you...</p></div>';
+                
+                // Cinematic scroll to results
+                document.getElementById('explore').scrollIntoView({ behavior: 'smooth' });
+
+                try {
+                    // Fetch ALL hotels from database
+                    const { data: dbHotels, error } = await supabase
+                        .from('hotels')
+                        .select('*');
+
+                    if (error) throw error;
+
+                    const formattedHotels = dbHotels.map(h => {
+                        // Check if database has coordinate columns, otherwise fallback to local mapping
+                        const lat = h.latitude !== null && h.latitude !== undefined ? h.latitude : (HOTEL_COORDINATES[h.hotel_name]?.lat || 0);
+                        const lon = h.longitude !== null && h.longitude !== undefined ? h.longitude : (HOTEL_COORDINATES[h.hotel_name]?.lon || 0);
+                        
+                        return {
+                            id: h.id,
+                            name: h.hotel_name,
+                            city: h.city,
+                            country: h.country,
+                            rating: parseFloat(h.rating) || 4.5,
+                            price: h.price_per_night,
+                            img: h.image_url,
+                            amenities: h.amenities || [],
+                            latitude: lat,
+                            longitude: lon,
+                            distance: calculateDistance(userLat, userLon, lat, lon)
+                        };
+                    });
+
+                    // Sort by distance (nearest first)
+                    formattedHotels.sort((a, b) => a.distance - b.distance);
+
+                    setTimeout(() => {
+                        renderHotels(formattedHotels);
+                        document.getElementById('discovery-title').innerHTML = `📍 Luxury Stays Near You`;
+                    }, 800);
+
+                } catch (err) {
+                    console.error("Failed to query database for nearby hotels:", err);
+                    // Fallback to SAMPLE_HOTELS if db query fails
+                    const fallbackHotels = SAMPLE_HOTELS.map(h => {
+                        const coords = HOTEL_COORDINATES[h.name] || { lat: 0, lon: 0 };
+                        return {
+                            ...h,
+                            distance: calculateDistance(userLat, userLon, coords.lat, coords.lon)
+                        };
+                    }).sort((a, b) => a.distance - b.distance);
+
+                    setTimeout(() => {
+                        renderHotels(fallbackHotels);
+                        document.getElementById('discovery-title').innerHTML = `📍 Curated Luxury Stays (Fallback)`;
+                    }, 800);
+                }
+            }
+
+            if (nearMeBtn) {
+                nearMeBtn.addEventListener('click', () => {
+                    if (!navigator.geolocation) {
+                        NotificationSystem.showToast("Geolocation is not supported on this device.", "error");
+                        return;
+                    }
+
+                    nearMeBtn.innerHTML = '<i class="ph ph-spinner ph-spin" style="color: #D4AF37;"></i> Detecting...';
+                    nearMeBtn.disabled = true;
+
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const latitude = position.coords.latitude;
+                            const longitude = position.coords.longitude;
+                            console.log(`📡 Device GPS Coordinates acquired: ${latitude}, ${longitude}`);
+
+                            await findNearbyHotels(latitude, longitude);
+
+                            nearMeBtn.innerHTML = '<i class="ph-fill ph-map-pin"></i> <span>Hotels Near Me</span>';
+                            nearMeBtn.disabled = false;
+                        },
+                        (error) => {
+                            console.warn("Geolocation Access Denied or Error:", error);
+                            NotificationSystem.showToast("Location access denied or unavailable.", "error");
+                            nearMeBtn.innerHTML = '<i class="ph-fill ph-map-pin"></i> <span>Hotels Near Me</span>';
+                            nearMeBtn.disabled = false;
+                        },
+                        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                    );
+                });
+            }
+
+
+            // Auth & Navbar Sync
+            const user = await LuxeDB.getUser();
+            if (user) {
+                const profile = await LuxeDB.getProfile();
+                const bookBtn = document.getElementById('bookBtn');
+                if (bookBtn) bookBtn.style.display = 'none';
+                
+                const profileDropdown = document.getElementById('user-profile');
+                if (profileDropdown) {
+                    profileDropdown.style.display = 'block';
+                    const navUsername = document.getElementById('nav-username');
+                    if (navUsername) {
+                        // Priority: profiles.full_name > user_metadata.full_name > user.email
+                        navUsername.textContent = profile?.full_name || user.user_metadata?.full_name || user.email.split('@')[0];
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) navbar.classList.add('scrolled');
+                else navbar.classList.remove('scrolled');
+            });
+
+            document.querySelector('.close-modal').onclick = () => {
+                document.getElementById('room-modal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            };
+
+            // Profile Dropdown Toggle Logic
+            const profileDropdown = document.getElementById('user-profile');
+            const profileToggle = document.querySelector('.profile-toggle');
+
+            if (profileToggle) {
+                profileToggle.onclick = (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('active');
+                };
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (profileDropdown && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.remove('active');
+                }
+            });
+
+            // FAQ Accordion Logic
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                const answer = item.querySelector('.faq-answer');
+                const icon = item.querySelector('i');
+
+                question.onclick = () => {
+                    const isOpen = item.classList.contains('active');
+                    
+                    // Close all others
+                    faqItems.forEach(other => {
+                        other.classList.remove('active');
+                        other.querySelector('.faq-answer').style.maxHeight = '0';
+                        other.querySelector('i').style.transform = 'rotate(0deg)';
+                    });
+
+                    if (!isOpen) {
+                        item.classList.add('active');
+                        answer.style.maxHeight = answer.scrollHeight + 'px';
+                        icon.style.transform = 'rotate(45deg)';
+                    }
+                };
+            });
+
+            // Logout Logic
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.onclick = async (e) => {
+                    e.preventDefault();
+                    const confirmed = await NotificationSystem.confirm("Are you sure you want to logout?");
+                    if(confirmed) {
+                        LuxeDB.logout();
+                    }
+                };
+            }
+
+            // 🌐 LANGUAGE & CURRENCY SYSTEM
+            const langToggle = document.getElementById("langToggle");
+            const translations = {
+                en: {
+                    book: "Guest Login",
+                    services: "The Art of Timeless Stay",
+                    welcome: "Discover the Art of Stay",
+                    legacyTitle: "Our Legacy",
+                    legacySubtitle: "The Art of Timeless Stay",
+                    legacyText: "For over a century, LuxeStay has been the silent architect of memories. Inspired by the regal hospitality of the East and the refined precision of the West, we curate environments where every second is a masterpiece. From the scent of hand-picked jasmine to the silent glide of our bespoke concierge, we don't just host guests; we preserve legacies.",
+                    legacyBtn: "Explore Our Philosophy"
+                },
+                ar: {
+                    book: "تسجيل دخول الضيوف",
+                    services: "فن الإقامة الخالدة",
+                    welcome: "اكتشف فن الإقامة",
+                    legacyTitle: "إرثنا",
+                    legacySubtitle: "فن الإقامة الخالدة",
+                    legacyText: "لأكثر من قرن، كانت لوكس ستاي المهندس الصامت للذكريات. مستوحاة من الضيافة الملكية للشرق والدقة الراقية للغرب، نقوم بتهيئة بيئات يصبح فيها كل لحظة تحفة فنية. من عبير الياسمين المختار بعناية إلى الخدمة الهادئة، نحن لا نستضيف الضيوف فقط؛ بل نحفظ الإرث.",
+                    legacyBtn: "اكتشف فلسفتنا"
+                }
+            };
+
+            function applyLanguage(lang) {
+                const t = translations[lang];
+                if (document.getElementById("bookBtn")) document.getElementById("bookBtn").innerText = t.book;
+                if (document.getElementById("servicesText")) document.getElementById("servicesText").innerText = t.services;
+                if (document.getElementById("welcomeText")) document.getElementById("welcomeText").innerText = t.welcome;
+                
+                if (document.getElementById("legacyTitle")) document.getElementById("legacyTitle").innerText = t.legacyTitle;
+                if (document.getElementById("legacySubtitle")) document.getElementById("legacySubtitle").innerText = t.legacySubtitle;
+                if (document.getElementById("legacyText")) document.getElementById("legacyText").innerText = t.legacyText;
+                if (document.getElementById("legacyBtn")) document.getElementById("legacyBtn").innerText = t.legacyBtn;
+
+                // Update Toggle Text
+                const langText = document.getElementById("langText");
+                if (langText) {
+                    langText.innerText = lang === "en" ? "العربية" : "English";
+                }
+
+                // Adjust text direction for Arabic
+                document.body.style.direction = lang === "ar" ? "rtl" : "ltr";
+                
+                applyCurrency(lang);
+            }
+
+            function applyCurrency(lang) {
+                const currencySymbol = lang === "ar" ? "د.إ " : "$ ";
+                document.querySelectorAll(".price").forEach(el => {
+                    const amount = el.getAttribute("data-price");
+                    el.innerText = currencySymbol + amount;
+                });
+            }
+
+            langToggle.addEventListener("click", () => {
+                let currentLang = localStorage.getItem("lang") || "en";
+                let newLang = currentLang === "en" ? "ar" : "en";
+                localStorage.setItem("lang", newLang);
+                applyLanguage(newLang);
+            });
+
+            // Initial Language Load
+            const savedLang = localStorage.getItem("lang") || "en";
+            applyLanguage(savedLang);
+
+            // Re-apply on every hotel render (since content is dynamic)
+            const observer = new MutationObserver(() => {
+                const currentLang = localStorage.getItem("lang") || "en";
+                applyCurrency(currentLang);
+            });
+            if (document.getElementById('hotel-results-grid')) observer.observe(document.getElementById('hotel-results-grid'), { childList: true });
+            if (document.getElementById('modal-room-list')) observer.observe(document.getElementById('modal-room-list'), { childList: true });
+
+            // 🧘 PHILOSOPHY SCROLL ANIMATION
+            const philoSection = document.getElementById("philosophySection");
+            if (philoSection) {
+                const triggerAnimation = () => {
+                    const pos = philoSection.getBoundingClientRect().top;
+                    const screenHeight = window.innerHeight;
+                    if (pos < screenHeight - 150) {
+                        philoSection.classList.add("show");
+                    }
+                };
+                window.addEventListener("scroll", triggerAnimation);
+                triggerAnimation(); // Initial check
+            }
+
+            // Hidden Management Shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey) {
+                    if (e.key === 'A' || e.key === 'a') {
+                        window.location.href = 'admin-login.html';
+                    } else if (e.key === 'S' || e.key === 's') {
+                        window.location.href = 'staff-login.html';
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- 360 View Modal -->
+    <div id="view360Modal" class="view360-modal">
+      <div class="view360-content">
+        <span class="close-btn" onclick="close360View()">×</span>
+        <iframe id="view360Frame" src="" allowfullscreen></iframe>
+        <!-- Custom Video Elements for Deluxe Room -->
+        <div id="video360Container" style="display: none; width: 100%; height: 100%; position: relative; overflow: hidden; background: #000; cursor: grab; align-items: center; justify-content: center; border-radius: 12px;">
+          <video id="video360Player" src="public/video/create_video_for_this_room_to.mp4" loop playsinline style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; border-radius: 12px;"></video>
+          <div id="video360Overlay" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 50px; color: #fff; font-size: 0.8rem; display: flex; align-items: center; gap: 10px; pointer-events: none; z-index: 10;">
+            <i class="ph ph-hand-grabbing" style="font-size: 1.2rem;"></i>
+            <span style="font-family: 'Cinzel'; letter-spacing: 1px;">Drag left/right to look around</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        const room360Videos = {
+          "deluxe room": "public/video/deluxe_room_360.mp4",
+          "luxury suite": "public/video/luxury_suite_360.mp4",
+          "balcony view room": "public/video/balcony_view_room_360.mp4",
+          "presidential suite": "public/video/presidential_suite_360.mp4"
+        };
+
+        let isDraggingVideo = false;
+        let videoStartX = 0;
+        let videoStartPct = 0;
+        let lastUpdateTime = 0;
+        const THROTTLE_MS = 35; // ~30 fps update cap for flawless, stutter-free seeks
+        const videoContainer = document.getElementById('video360Container');
+        const videoPlayer = document.getElementById('video360Player');
+
+        const onVideoStart = (e) => {
+            isDraggingVideo = true;
+            videoStartX = e.pageX || (e.touches && e.touches[0].pageX);
+            videoContainer.style.cursor = 'grabbing';
+            videoPlayer.pause(); // Pause auto-rotation during active drag exploration
+            if (videoPlayer.duration) {
+                videoStartPct = videoPlayer.currentTime / videoPlayer.duration;
+            }
+        };
+
+        const onVideoEnd = () => {
+            isDraggingVideo = false;
+            videoContainer.style.cursor = 'grab';
+            
+            // Resume elegant, ultra-smooth auto-rotation on release
+            videoPlayer.playbackRate = 0.35; // Native hardware-accelerated 35% speed
+            videoPlayer.play().catch(() => {});
+        };
+
+        const onVideoMove = (e) => {
+            if (!isDraggingVideo) return;
+            const now = performance.now();
+            if (now - lastUpdateTime < THROTTLE_MS) return; // Enforce throttle limit
+
+            const x = e.pageX || (e.touches && e.touches[0].pageX);
+            const diff = x - videoStartX;
+            
+            const containerWidth = videoContainer.clientWidth || window.innerWidth;
+            const movePct = diff / (containerWidth * 1.5); // Scaled for a natural, controlled drag speed
+            
+            if (videoPlayer.duration) {
+                let targetPct = videoStartPct - movePct; // Inverse direction for intuitive panning
+                
+                // Wrap around cleanly for infinite 360° loops
+                while (targetPct < 0) targetPct += 1;
+                while (targetPct > 1) targetPct -= 1;
+                
+                videoPlayer.currentTime = targetPct * videoPlayer.duration;
+                lastUpdateTime = now;
+            }
+        };
+
+        videoContainer.addEventListener('mousedown', onVideoStart);
+        window.addEventListener('mouseup', onVideoEnd);
+        window.addEventListener('mousemove', onVideoMove);
+
+        videoContainer.addEventListener('touchstart', onVideoStart, { passive: true });
+        window.addEventListener('touchend', onVideoEnd);
+        window.addEventListener('touchmove', onVideoMove, { passive: true });
+
+        window.open360View = function(roomType) {
+          const modal = document.getElementById("view360Modal");
+          const frame = document.getElementById("view360Frame");
+          const videoContainer = document.getElementById("video360Container");
+          const videoPlayer = document.getElementById("video360Player");
+          
+          const type = roomType ? roomType.toLowerCase().trim() : "deluxe room";
+          const videoSrc = room360Videos[type];
+          
+          if (videoSrc) {
+              frame.style.display = "none";
+              videoContainer.style.display = "flex";
+              videoPlayer.src = videoSrc;
+              videoPlayer.currentTime = 0;
+              videoPlayer.playbackRate = 0.35; // Butter smooth hardware-rendered playback rate
+              videoPlayer.play().catch(() => {});
+          } else {
+              videoContainer.style.display = "none";
+              frame.style.display = "block";
+              frame.src = "https://cdn.pannellum.org/2.5/pannellum.htm#panorama=" + encodeURIComponent(window.location.origin + "/assets/deluxe_room_custom.png") + "&autoLoad=true";
+          }
+          
+          modal.style.display = "flex";
+        };
+
+        window.close360View = function() {
+          document.getElementById("view360Modal").style.display = "none";
+          document.getElementById("view360Frame").src = "";
+          const videoPlayer = document.getElementById("video360Player");
+          if (videoPlayer) {
+              videoPlayer.pause();
+          }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gourmet Dining - LuxeStay</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="supabase-config.js?v=3" type="module"></script>
+    <script src="notifications.js?v=3" type="module"></script>
+    <style>
+        :root {
+            --luxe-gold: #D4AF37;
+            --luxe-bg: #07101E;
+            --luxe-card: rgba(255,255,255,0.03);
+            --luxe-text: #F8F9FA;
+            --luxe-border: rgba(212,175,55,0.2);
+        }
+        body {
+            background-color: var(--luxe-bg);
+            color: var(--luxe-text);
+        }
+        .smart-section {
+            margin-bottom: 40px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-header h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--luxe-gold);
+            font-size: 1.5rem;
+        }
+        .horizontal-scroll {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            scrollbar-width: none;
+        }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+        
+        .food-card {
+            background: var(--luxe-card);
+            border: 1px solid var(--luxe-border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .food-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--luxe-gold);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .card-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--luxe-gold);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+        .card-type {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+        .card-type.veg { border-color: #4CAF50; color: #4CAF50; }
+        .card-type.non-veg { border-color: #F44336; color: #F44336; }
+        .card-type i { font-size: 10px; }
+
+        .food-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .food-card:hover .food-image { transform: scale(1.1); }
+        
+        .food-details { padding: 20px; }
+        .food-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: #999;
+        }
+        .rating { color: var(--luxe-gold); display: flex; align-items: center; gap: 4px; }
+        
+        .food-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            margin: 0 0 8px 0;
+            color: #fff;
+        }
+        .food-desc {
+            font-size: 0.85rem;
+            color: #B0B7C3;
+            line-height: 1.5;
+            height: 40px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin-bottom: 15px;
+        }
+        .food-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .food-price { font-size: 1.2rem; font-weight: 700; color: var(--luxe-gold); }
+        .add-to-cart-btn {
+            background: var(--luxe-gold);
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .add-to-cart-btn:hover { background: #fff; }
+
+        .dining-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0;
+            padding: 40px 24px 120px;
+        }
+
+        /* Sidebar Navigation */
+        .menu-sidebar {
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            padding-right: 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+        }
+        .menu-sidebar::-webkit-scrollbar { width: 4px; }
+        .menu-sidebar::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 10px; }
+
+        .category-group {
+            margin-bottom: 30px;
+        }
+        .category-group-title {
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            color: #D4AF37;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+        .side-tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: #B0B7C3;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        .side-tab-btn i { font-size: 1.2rem; }
+        .side-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        .side-tab-btn.active {
+            background: rgba(212, 175, 55, 0.1);
+            color: #D4AF37;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .smart-section {
+            margin-bottom: 60px;
+        }
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+        }
+        .section-header-row h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            color: #fff;
+            margin: 0;
+        }
+
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        /* Enhanced Food Card */
+        .food-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .food-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(212, 175, 55, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .food-badge-container {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+        .badge-tag {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-popular { background: #D4AF37; color: #07101E; }
+        .badge-veg { background: #4CAF50; color: #fff; }
+        .badge-nonveg { background: #F44336; color: #fff; }
+
+        .food-image-wrapper {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+        .food-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+        .food-card:hover .food-image-wrapper img { transform: scale(1.1); }
+
+        .food-meta-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 15px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .food-info { padding: 20px; }
+        .food-rating { color: #D4AF37; margin-bottom: 5px; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
+        .food-title { font-family: 'Cinzel', serif; font-size: 1.15rem; margin-bottom: 8px; color: #fff; }
+        .food-desc { font-size: 0.8rem; color: #B0B7C3; margin-bottom: 15px; line-height: 1.6; height: 38px; overflow: hidden; }
+        
+        .food-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .food-price { font-size: 1.25rem; font-weight: 700; color: #D4AF37; }
+
+        /* Professional Add Button & Qty Control */
+        .add-cart-btn {
+            background: #D4AF37;
+            color: #07101E;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+        .add-cart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 50px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .qty-btn {
+            color: #D4AF37;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        .qty-btn:hover { transform: scale(1.2); }
+        .qty-val { font-weight: 700; color: #fff; min-width: 20px; text-align: center; }
+
+        /* Cart Upgrade */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+        .cart-content {
+            background: #07101E;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            float: right;
+            position: relative;
+            border-left: 1px solid rgba(212, 175, 55, 0.3);
+            animation: slideInRight 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .cart-item-modern {
+            display: flex;
+            gap: 15px;
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+        .cart-item-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .cart-item-details { flex: 1; }
+        .cart-item-title { font-family: 'Cinzel', serif; font-weight: 700; color: #1A1A1A; margin-bottom: 4px; }
+        .cart-item-price-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .remove-item { color: #ff4444; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+
+        .cart-summary {
+            padding: 30px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #666;
+            font-weight: 500;
+        }
+        .summary-total {
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            padding-top: 20px;
+            margin-top: 20px;
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-family: 'Cinzel', serif;
+        }
+
+        .instructions-area {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            font-family: inherit;
+            resize: none;
+            transition: all 0.3s;
+        }
+        .instructions-area:focus {
+            border-color: #D4AF37;
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Professional Pill Cart FAB */
+        .cart-fab {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #D4AF37 0%, #B8962E 100%);
+            color: #07101E;
+            padding: 16px 32px;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), 0 5px 15px rgba(212, 175, 55, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 240px;
+            justify-content: center;
+        }
+        .cart-fab:hover {
+            transform: translateX(-50%) translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.5), 0 8px 20px rgba(212, 175, 55, 0.5);
+        }
+        .cart-fab.hidden {
+            transform: translateX(-50%) translateY(150px);
+            opacity: 0;
+        }
+
+        .cart-fab-icon {
+            font-size: 1.4rem;
+            position: relative;
+        }
+        .cart-fab-label {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
+        }
+        .cart-fab-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(7, 16, 30, 0.2);
+        }
+        .cart-fab-total {
+            font-weight: 800;
+            font-size: 1rem;
+        }
+        .cart-badge-pill {
+            background: #07101E;
+            color: #D4AF37;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 992px) {
+            .dining-layout { grid-template-columns: 1fr; }
+            .menu-sidebar { position: static; height: auto; display: flex; overflow-x: auto; padding-bottom: 20px; }
+            .category-group { margin-bottom: 0; display: flex; gap: 10px; }
+            .category-group-title { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-brand">
+            <a href="index.html"><img src="public/logo.png" alt="LuxeStay" class="nav-logo" style="height: 50px;"></a>
+        </div>
+        <div class="nav-actions">
+            <button onclick="openChefSelection()" class="luxe-back-btn" style="background: rgba(212, 175, 55, 0.1); border-color: #D4AF37; margin-right: 15px;">
+                <i class="ph-fill ph-star-four"></i>
+                <span>Chef's Specials</span>
+            </button>
+            <button onclick="openPartnerMenu()" class="luxe-back-btn" style="background: rgba(212, 175, 55, 0.1); border-color: #D4AF37; margin-right: 15px;">
+                <i class="ph ph-fork-knife"></i>
+                <span>Partner Menu</span>
+            </button>
+            <a href="javascript:history.back()" class="luxe-back-btn">
+                <i class="ph ph-arrow-left"></i>
+                <span>Back</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Restaurant Brand Header Banner -->
+    <div id="restaurant-brand-header" class="brand-header-banner" style="background: linear-gradient(to bottom, rgba(7, 16, 30, 0) 0%, rgba(11, 22, 41, 0.8) 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.15); padding: 120px 24px 40px; text-align: center;">
+        <span id="restaurant-banner-cuisine" style="color: #D4AF37; font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase;"><i class="ph-fill ph-sparkle"></i> Epicurean Fine Dining</span>
+        <h1 id="restaurant-banner-name" style="font-family: 'Cinzel', serif; font-size: 3rem; color: #fff; margin: 15px 0 10px; letter-spacing: 4px; font-weight: 700; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">LuxeStay Gourmet</h1>
+        <p id="restaurant-banner-address" style="color: #B0B7C3; font-size: 0.9rem; letter-spacing: 0.5px;"><i class="ph ph-map-pin" style="color: #D4AF37; margin-right: 4px;"></i> Luxury Culinary Collection Partner</p>
+    </div>
+
+
+        <div class="dining-layout">
+            <!-- Sidebar -->
+            <aside class="menu-sidebar" id="menu-sidebar">
+                <!-- Groups will be injected here -->
+            </aside>
+
+            <!-- Main Content -->
+            <main class="menu-content">
+                <!-- Category Section -->
+                <section class="smart-section">
+                    <div class="section-header-row">
+                        <h2 id="current-category-title">Menu</h2>
+                    </div>
+                    <div class="food-grid" id="food-grid"></div>
+                </section>
+
+                <!-- Live Order Tracking Section (Dynamic) -->
+                <div id="live-orders-container" style="margin-top: 40px; margin-bottom: 40px; display: none;">
+                    <div class="section-header-row">
+                        <h2>Active Orders</h2>
+                    </div>
+                    <div id="active-orders-list" style="display: flex; flex-direction: column; gap: 15px;"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Chef's Selection Modal -->
+    <div id="chef-modal" class="cart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
+        <div class="cart-content" style="max-width: 1000px; width: 95%; background: #07101E; border: 1px solid rgba(212, 175, 55, 0.3); margin: 50px auto; position: relative; border-radius: 20px;">
+            <div class="cart-header" style="border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding: 20px 30px;">
+                <div>
+                    <h2 style="font-family: 'Cinzel'; color: #D4AF37; margin: 0;">Chef's Signature Selection</h2>
+                    <p style="color: #B0B7C3; font-size: 0.85rem; margin-top: 5px;">Exclusively curated by our Executive Chef</p>
+                </div>
+                <span style="cursor: pointer; font-size: 2rem; color: #fff;" onclick="closeChefSelection()">&times;</span>
+            </div>
+            <div style="padding: 30px; max-height: 75vh; overflow-y: auto;">
+                <div class="food-grid" id="chef-selection-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partner Restaurant Menu Modal -->
+    <div id="partner-menu-modal" class="cart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
+        <div class="cart-content" style="max-width: 1000px; width: 95%; background: #07101E; border: 1px solid rgba(212, 175, 55, 0.3); margin: 50px auto; position: relative; border-radius: 20px;">
+            <div class="cart-header" style="border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding: 20px 30px;">
+                <div>
+                    <h2 id="partner-modal-title" style="font-family: 'Cinzel'; color: #D4AF37; margin: 0;">Partner Restaurant Menu</h2>
+                    <p id="partner-modal-desc" style="color: #B0B7C3; font-size: 0.85rem; margin-top: 5px;">Exclusive culinary partner selection</p>
+                </div>
+                <span style="cursor: pointer; font-size: 2rem; color: #fff;" onclick="closePartnerMenu()">&times;</span>
+            </div>
+            <div style="padding: 30px; max-height: 75vh; overflow-y: auto;">
+                <div class="food-grid" id="partner-menu-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Cart Pill -->
+    <div class="cart-fab hidden" id="cart-fab-pill" onclick="toggleCart()">
+        <div class="cart-fab-icon">
+            <i class="ph-bold ph-shopping-cart"></i>
+        </div>
+        <span class="cart-fab-label">View Cart</span>
+        <div class="cart-fab-divider"></div>
+        <div class="cart-fab-total" id="cart-fab-total-val">₹0</div>
+        <span class="cart-badge-pill" id="cart-count">0</span>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="cart-modal">
+        <div class="cart-content" id="cart-step">
+            <div class="cart-header" style="background: #07101E; padding: 30px; border-bottom: 1px solid rgba(212, 175, 55, 0.2); color: #fff; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="font-family: 'Cinzel'; margin: 0; color: #D4AF37; letter-spacing: 2px;">Epicurean Selection</h2>
+                    <p style="color: #B0B7C3; font-size: 0.8rem; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">Curated Fine Dining</p>
+                </div>
+                <span style="cursor: pointer; font-size: 2.5rem; color: #fff; line-height: 1;" onclick="toggleCart()">&times;</span>
+            </div>
+            <div class="cart-items" id="cart-items-list" style="flex: 1; overflow-y: auto;">
+                <!-- Modern cart items injected here -->
+            </div>
+            <div class="cart-summary" style="background: #0A1425; border-top: 1px solid rgba(212, 175, 55, 0.2);">
+                <textarea class="instructions-area" id="special-instructions" placeholder="Note for our Master Chef (e.g. Spice levels, allergies, preferences)..."></textarea>
+                <div class="summary-row">
+                    <span style="color: #B0B7C3;">Epicurean Subtotal</span>
+                    <span id="cart-subtotal" style="color: #fff;">₹0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span style="color: #B0B7C3;">Butler Service Fee</span>
+                    <span style="color: #fff;">₹0.00</span>
+                </div>
+                <div class="summary-total summary-row">
+                    <span>Grand Total</span>
+                    <span id="cart-total-price" style="color: #D4AF37;">₹0.00</span>
+                </div>
+                <button class="add-cart-btn" style="width: 100%; padding: 22px; font-size: 1.1rem; border-radius: 50px; margin-top: 25px; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);" onclick="placeOrder()">Place Epicurean Order</button>
+            </div>
+        </div>
+
+        <div class="cart-content success-view" id="success-view" style="display: none; text-align: center; padding: 80px 40px; background: #07101E; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 20px; margin: auto;">
+            <div class="success-icon" style="font-size: 6rem; color: #D4AF37; margin-bottom: 30px; filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));">
+                <i class="ph-fill ph-check-circle"></i>
+            </div>
+            <h2 style="font-family: 'Cinzel'; color: #fff; font-size: 2.2rem; letter-spacing: 2px;">Epicurean Request Confirmed</h2>
+            <p style="color: #B0B7C3; margin: 25px 0; font-size: 1.1rem; line-height: 1.6;">Our Master Chefs have received your selection. Your journey of flavors is beginning.</p>
+            
+            <div style="background: rgba(212, 175, 55, 0.05); padding: 25px; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 16px; margin: 40px 0;">
+                <p style="font-weight: 400; color: #D4AF37; text-transform: uppercase; letter-spacing: 3px; font-size: 0.75rem; margin-bottom: 10px;">Concierge ID</p>
+                <p id="order-id" style="color: #fff; font-family: 'Cinzel'; font-size: 1.8rem; letter-spacing: 4px; font-weight: 700;">#ORD-000000</p>
+            </div>
+
+            <button class="add-cart-btn" style="width: 100%; padding: 20px; border-radius: 50px; font-size: 1rem; margin-top: 20px;" onclick="resetCartModal()">
+                <i class="ph-bold ph-arrow-left" style="margin-right: 10px;"></i>
+                Return to Epicurean Menu
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { LuxeDB, supabase } from './supabase-config.js';
+        import { NotificationSystem } from './notifications.js';
+        import { LUXE_MENU } from './menu-data.js';
+        
+        window.LuxeDB = LuxeDB;
+        window.supabase = supabase;
+
+        let allMenuItems = LUXE_MENU; // Use the expanded menu data
+        let cart = [];
+        let partnerMenuItems = [];
+
+        const FALLBACK_PR_MENU = [
+            {
+                id: "pr-1",
+                name: "Deluxe Thali",
+                price: 450,
+                category: "Main Course",
+                image_url: "https://www.shutterstock.com/shutterstock/photos/1593739531/display_1500/stock-photo-1593739531.jpg",
+                image: "https://www.shutterstock.com/shutterstock/photos/1593739531/display_1500/stock-photo-1593739531.jpg",
+                description: "DATA:{\"rating\":4.9,\"time\":\"20 min\",\"type\":\"Veg\",\"tag\":\"Royal Feast\"} | A rich curation of seasonal curries, dal, rice, breads, salad, and dessert.",
+                is_popular: true
+            },
+            {
+                id: "pr-2",
+                name: "Chole Bhature",
+                price: 220,
+                category: "Main Course",
+                image_url: "https://www.shutterstock.com/shutterstock/photos/2714165479/display_1500/stock-photo-2714165479.jpg",
+                image: "https://www.shutterstock.com/shutterstock/photos/2714165479/display_1500/stock-photo-2714165479.jpg",
+                description: "DATA:{\"rating\":4.8,\"time\":\"15 min\",\"type\":\"Veg\",\"tag\":\"Signature\"} | Spiced chickpeas served with fluffy, golden-fried leavened bread.",
+                is_popular: true
+            },
+            {
+                id: "pr-3",
+                name: "Rajma Chawal",
+                price: 200,
+                category: "Main Course",
+                image_url: "https://www.shutterstock.com/shutterstock/photos/1997399471/display_1500/stock-photo-1997399471.jpg",
+                image: "https://www.shutterstock.com/shutterstock/photos/1997399471/display_1500/stock-photo-1997399471.jpg",
+                description: "DATA:{\"rating\":4.8,\"time\":\"15 min\",\"type\":\"Veg\",\"tag\":\"Comfort Food\"} | Slow-cooked red kidney beans in a rich spiced gravy, served with fragrant basmati rice.",
+                is_popular: false
+            },
+            {
+                id: "pr-4",
+                name: "Kheer",
+                price: 150,
+                category: "Dessert",
+                image_url: "https://www.shutterstock.com/shutterstock/photos/2491100411/display_1500/stock-photo-2491100411.jpg",
+                image: "https://www.shutterstock.com/shutterstock/photos/2491100411/display_1500/stock-photo-2491100411.jpg",
+                description: "DATA:{\"rating\":4.7,\"time\":\"10 min\",\"type\":\"Veg\",\"tag\":\"Sweet Delicacy\"} | Slow-cooked basmati rice pudding infused with cardamoms, saffron, and loaded with dry fruits.",
+                is_popular: false
+            },
+            {
+                id: "pr-5",
+                name: "Masala Chach",
+                price: 80,
+                category: "Appetizer",
+                image_url: "https://www.shutterstock.com/shutterstock/photos/426285277/display_1500/stock-photo-426285277.jpg",
+                image: "https://www.shutterstock.com/shutterstock/photos/426285277/display_1500/stock-photo-426285277.jpg",
+                description: "DATA:{\"rating\":4.6,\"time\":\"5 min\",\"type\":\"Veg\",\"tag\":\"Refreshing\"} | Traditional spiced buttermilk churned with fresh mint, coriander, roasted cumin, and black salt.",
+                is_popular: false
+            }
+        ];
+
+        // Expose functions to window
+        window.addToCart = (id) => addToCart(id);
+        window.changeQty = (id, delta) => changeQty(id, delta);
+        window.toggleCart = () => toggleCart();
+        window.placeOrder = () => placeOrder();
+        window.filterCategory = (category, btn) => filterCategory(category, btn);
+        window.openChefSelection = () => openChefSelection();
+        window.closeChefSelection = () => closeChefSelection();
+        window.openPartnerMenu = () => openPartnerMenu();
+        window.closePartnerMenu = () => closePartnerMenu();
+        window.resetCartModal = () => resetCartModal();
+
+         const menuGroups = [
+            {
+                title: "Core Dining",
+                categories: [
+                    { name: "Breakfast", icon: "ph-coffee" },
+                    { name: "Lunch", icon: "ph-sun" },
+                    { name: "Dinner", icon: "ph-moon" },
+                    { name: "Combo Meals", icon: "ph-package" }
+                ]
+            },
+            {
+                title: "Global Flavors",
+                categories: [
+                    { name: "Indian", icon: "ph-fire" },
+                    { name: "Italian", icon: "ph-pizza" },
+                    { name: "Asian", icon: "ph-bowl-food" }
+                ]
+            },
+            {
+                title: "Patisserie & Bar",
+                categories: [
+                    { name: "Hot Drinks", icon: "ph-cup" },
+                    { name: "Fresh Juices", icon: "ph-drop" },
+                    { name: "Cakes & Pastries", icon: "ph-cake" },
+                    { name: "Indian Sweets", icon: "ph-cookie" }
+                ]
+            }
+        ];
+
+        // Legacy image map removed to prioritize curated 160-item Unsplash library
+
+        async function loadMenu() {
+            try {
+                // 1. Get current guest stay information
+                const user = await LuxeDB.getUser();
+                let hotelId = null;
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryBookingId = urlParams.get('id') || urlParams.get('booking_id');
+
+                if (user) {
+                    const bookingsCheck = await LuxeDB.getBookings();
+                    let activeStay = null;
+                    if (bookingsCheck && bookingsCheck.length > 0 && queryBookingId) {
+                        activeStay = bookingsCheck.find(b => b.id.toString() === queryBookingId);
+                    }
+                    if (activeStay) {
+                        hotelId = activeStay.hotel_id;
+                    }
+                }
+
+                // If no URL specific parameter, use explicit dashboard localStorage
+                if (!hotelId) {
+                    hotelId = localStorage.getItem('dashboard_hotel_id');
+                }
+
+                // If still no hotelId, query database live checked-in bookings
+                if (!hotelId && user) {
+                    const bookingsCheck = await LuxeDB.getBookings();
+                    let activeStay = null;
+                    if (bookingsCheck && bookingsCheck.length > 0) {
+                        const checkedInBookings = bookingsCheck.filter(b => b.status === "checked_in");
+                        if (checkedInBookings.length > 0) {
+                            checkedInBookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            activeStay = checkedInBookings[0];
+                        }
+                        if (!activeStay) {
+                            const confirmedBookings = bookingsCheck.filter(b => b.status === "confirmed");
+                            if (confirmedBookings.length > 0) {
+                                confirmedBookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                                activeStay = confirmedBookings[0];
+                            }
+                        }
+                    }
+                    if (activeStay) {
+                        hotelId = activeStay.hotel_id;
+                    }
+                }
+                
+                // If still no hotelId, fetch first hotel as a default for testing
+                if (!hotelId) {
+                    const { data: hotels } = await supabase.from('hotels').select('id').limit(1);
+                    if (hotels && hotels.length > 0) {
+                        hotelId = hotels[0].id;
+                    }
+                }
+                
+                // Fetch the partner restaurant details for branding
+                if (hotelId) {
+                    const { data: partnerRestaurant, error: prError } = await supabase
+                        .from('partner_restaurants')
+                        .select('*')
+                        .eq('hotel_id', hotelId)
+                        .maybeSingle();
+                    
+                    if (partnerRestaurant) {
+                        window.currentRestaurant = partnerRestaurant;
+                        
+                        const bannerName = document.getElementById('restaurant-banner-name');
+                        if (bannerName) bannerName.textContent = partnerRestaurant.restaurant_name;
+                        
+                        const bannerCuisine = document.getElementById('restaurant-banner-cuisine');
+                        if (bannerCuisine) bannerCuisine.innerHTML = `<i class="ph-fill ph-sparkle" style="color: #D4AF37; margin-right: 4px;"></i> ${partnerRestaurant.cuisine_type} &bull; Culinary Partner`;
+                        
+                        const bannerAddress = document.getElementById('restaurant-banner-address');
+                        if (bannerAddress) bannerAddress.innerHTML = `<i class="ph ph-map-pin" style="color: #D4AF37; margin-right: 4px;"></i> ${partnerRestaurant.restaurant_address}`;
+                    }
+                }
+
+                // Query the menu items matching this hotel_id or restaurant_id
+                let query = supabase.from('menu_items').select('*');
+                if (hotelId) {
+                    query = query.eq('hotel_id', hotelId);
+                }
+                
+                const { data, error } = await query.order('category');
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    // Map database fields to the UI expectation
+                    allMenuItems = data.map(item => ({
+                        ...item,
+                        image: item.image_url,
+                        is_popular: item.is_popular || false
+                    }));
+                } else {
+                    // Fallback to curated menu if DB is empty
+                    allMenuItems = LUXE_MENU;
+                }
+
+                // Fetch the partner restaurant menu from PR_Menu table
+                try {
+                    const { data: prData, error: prError } = await supabase
+                        .from('PR_Menu')
+                        .select('*')
+                        .order('price');
+                    
+                    if (prError) throw prError;
+
+                    if (prData && prData.length > 0) {
+                        partnerMenuItems = prData.map(item => ({
+                            ...item,
+                            image: item.image_url,
+                            is_popular: item.is_popular || false
+                        }));
+                    } else {
+                        partnerMenuItems = FALLBACK_PR_MENU;
+                    }
+                } catch (e) {
+                    console.warn("LuxeDB: Falling back to local PR_Menu data.", e);
+                    partnerMenuItems = FALLBACK_PR_MENU;
+                }
+            } catch (err) {
+                console.warn("LuxeDB: Falling back to local menu data.", err);
+                allMenuItems = LUXE_MENU;
+                partnerMenuItems = FALLBACK_PR_MENU;
+            }
+            
+            renderSidebar();
+            const initialCategory = allMenuItems.length > 0 ? allMenuItems[0].category : 'Breakfast';
+            filterCategory(initialCategory); // Initial load based on dynamic items
+        }
+
+        function renderSidebar() {
+            const sidebar = document.getElementById('menu-sidebar');
+            sidebar.innerHTML = menuGroups.map(group => `
+                <div class="category-group">
+                    <div class="category-group-title">${group.title}</div>
+                    ${group.categories.map(cat => `
+                        <button class="side-tab-btn" id="btn-${cat.name.replace(/ /g, '-')}" onclick="filterCategory('${cat.name}', this)">
+                            <i class="ph-bold ${cat.icon}"></i>
+                            <span>${cat.name}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(category, btn) {
+            if (btn) {
+                document.querySelectorAll('.side-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            } else {
+                // Handle initial or programmatic filter
+                const id = `btn-${category.replace(/ /g, '-')}`;
+                const target = document.getElementById(id);
+                if (target) target.classList.add('active');
+            }
+
+            document.getElementById('current-category-title').textContent = category;
+            const items = allMenuItems.filter(item => item.category === category);
+            const grid = document.getElementById('food-grid');
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #999;">Explore our ${category} selection with our concierge.</div>`;
+            } else {
+                grid.innerHTML = items.map(item => renderFoodCard(item)).join('');
+            }
+        }
+
+        function parseMetadata(description) {
+            if (description && description.startsWith('DATA:')) {
+                const parts = description.split(' | ');
+                const jsonStr = parts[0].replace('DATA:', '');
+                try {
+                    const meta = JSON.parse(jsonStr);
+                    return { ...meta, realDescription: parts[1] };
+                } catch(e) {
+                    return { rating: 4.5, time: "25 min", type: "Veg", tag: "", realDescription: description };
+                }
+            }
+            return { rating: 4.5, time: "25 min", type: "Veg", tag: "", realDescription: description || "" };
+        }
+
+        function renderFoodCard(item) {
+            const meta = parseMetadata(item.description);
+            const isNonVeg = meta.type === 'Non-Veg';
+            const dietBadge = isNonVeg ? 'badge-nonveg' : 'badge-veg';
+            
+            // Check cart for quantity
+            const cartItem = cart.find(i => i.id === item.id);
+            const qty = cartItem ? cartItem.qty : 0;
+
+            return `
+                <div class="food-card" style="animation: fadeInUp 0.5s ease-out;">
+                    <div class="food-badge-container">
+                        ${item.is_popular ? `<span class="badge-tag badge-popular">Chef's Pick</span>` : ''}
+                        <span class="badge-tag ${dietBadge}">${meta.type}</span>
+                    </div>
+                    <div class="food-image-wrapper">
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="food-meta-overlay">
+                            <span><i class="ph ph-clock"></i> ${meta.time}</span>
+                            <span>Est. Delivery</span>
+                        </div>
+                    </div>
+                    <div class="food-info">
+                        <div class="food-rating">
+                            <i class="ph-fill ph-star"></i>
+                            <span>${meta.rating}</span>
+                        </div>
+                        <h3 class="food-title">${item.name}</h3>
+                        <p class="food-desc">${meta.realDescription}</p>
+                        <div class="food-footer" id="action-area-${item.id}">
+                            <span class="food-price">₹${item.price.toLocaleString()}</span>
+                            ${qty > 0 ? `
+                                <div class="qty-control">
+                                    <i class="ph-bold ph-minus qty-btn" onclick="changeQty('${item.id}', -1)"></i>
+                                    <span class="qty-val">${qty}</span>
+                                    <i class="ph-bold ph-plus qty-btn" onclick="changeQty('${item.id}', 1)"></i>
+                                </div>
+                            ` : `
+                                <button class="add-cart-btn" onclick="addToCart('${item.id}')">Add To Cart</button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Core Logic ---
+        function addToCart(id) {
+            const item = allMenuItems.find(i => i.id === id) || partnerMenuItems.find(i => i.id === id);
+            if (!item) return;
+            cart.push({ ...item, qty: 1 });
+            console.log("Cart Items:", cart);
+            refreshUI();
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+            
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+            console.log("Cart Updated:", cart);
+            refreshUI();
+        }
+
+        function refreshUI() {
+            // Re-render only the grids to reflect quantities
+            const activeCat = document.getElementById('current-category-title').textContent;
+            const items = allMenuItems.filter(item => item.category === activeCat);
+            document.getElementById('food-grid').innerHTML = items.map(item => renderFoodCard(item)).join('');
+            
+            // Re-render chef modal if open
+            if (document.getElementById('chef-modal').style.display === 'block') {
+                openChefSelection(); 
+            }
+
+            // Re-render partner modal if open
+            if (document.getElementById('partner-menu-modal') && document.getElementById('partner-menu-modal').style.display === 'block') {
+                const grid = document.getElementById('partner-menu-grid');
+                if (grid) {
+                    grid.innerHTML = partnerMenuItems.map(item => renderFoodCard(item)).join('');
+                }
+            }
+            
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const count = cart.reduce((acc, i) => acc + i.qty, 0);
+            const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            
+            // Update FAB visibility and values
+            const fab = document.getElementById('cart-fab-pill');
+            if (count > 0) {
+                fab.classList.remove('hidden');
+                document.getElementById('cart-fab-total-val').textContent = `₹${subtotal.toLocaleString()}`;
+                document.getElementById('cart-count').textContent = count;
+            } else {
+                fab.classList.add('hidden');
+            }
+            
+            const list = document.getElementById('cart-items-list');
+            if (cart.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 80px 40px; color: #999;">
+                        <i class="ph ph-shopping-bag" style="font-size: 4rem; opacity: 0.2; margin-bottom: 20px; display: block;"></i>
+                        <p style="font-family: 'Cinzel'; font-size: 1.2rem;">Your Bag is Empty</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Select from our curated menu to start your journey.</p>
+                    </div>`;
+            } else {
+                list.innerHTML = cart.map(item => `
+                    <div class="cart-item-modern">
+                        <img src="${item.image}" class="cart-item-img">
+                        <div class="cart-item-details">
+                            <h4 class="cart-item-title" style="color: #fff;">${item.name}</h4>
+                            <div class="cart-item-price-row">
+                                <span style="font-weight: 700; color: #D4AF37;">₹${item.price.toLocaleString()}</span>
+                                <div class="qty-control" style="background: rgba(255,255,255,0.05); border-color: rgba(212,175,55,0.3); padding: 4px 10px;">
+                                    <i class="ph-bold ph-minus qty-btn" onclick="changeQty('${item.id}', -1)" style="font-size: 0.8rem;"></i>
+                                    <span class="qty-val" style="color: #fff; font-size: 0.9rem;">${item.qty}</span>
+                                    <i class="ph-bold ph-plus qty-btn" onclick="changeQty('${item.id}', 1)" style="font-size: 0.8rem;"></i>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: #999;">Total: ₹${(item.price * item.qty).toLocaleString()}</span>
+                                <span class="remove-item" onclick="changeQty('${item.id}', -${item.qty})">Remove</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('cart-subtotal').textContent = `₹${subtotal.toLocaleString()}`;
+            document.getElementById('cart-total-price').textContent = `₹${subtotal.toLocaleString()}`;
+            
+            // Visual bounce for cart fab
+            fab.style.transform = 'translateX(-50%) scale(1.05)';
+            setTimeout(() => fab.style.transform = 'translateX(-50%) scale(1)', 200);
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function placeOrder() {
+            if (cart.length === 0) return;
+            
+            const btn = document.querySelector('.cart-summary .add-cart-btn');
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Confirming Order...';
+            btn.disabled = true;
+
+            try {
+                // Parallelized data gathering for maximum speed
+                const user = await LuxeDB.getUser();
+                if (!user) {
+                    location.href = 'login.html';
+                    return;
+                }
+
+                // Resolve active booking directly from URL, Dashboard explicit context, or latest database check-in state
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryBookingId = urlParams.get('id') || urlParams.get('booking_id');
+                
+                let hotelId = null;
+                let roomNumber = null;
+                let hotelName = null;
+
+                const bookingsCheck = await LuxeDB.getBookings();
+                let activeStay = null;
+
+                if (bookingsCheck && bookingsCheck.length > 0 && queryBookingId) {
+                    activeStay = bookingsCheck.find(b => b.id.toString() === queryBookingId);
+                }
+
+                if (activeStay) {
+                    hotelId = activeStay.hotel_id;
+                    roomNumber = activeStay.room || activeStay.room_name;
+                    hotelName = activeStay.hotel_name;
+                } else {
+                    // Fallback to explicitly saved dashboard hotel details
+                    hotelId = localStorage.getItem('dashboard_hotel_id');
+                    roomNumber = localStorage.getItem('dashboard_room');
+                    hotelName = localStorage.getItem('dashboard_hotel_name');
+                }
+
+                // If still missing details, fallback to live database check-ins
+                if (!hotelId || !roomNumber || !hotelName) {
+                    let dbStay = null;
+                    if (bookingsCheck && bookingsCheck.length > 0) {
+                        const checkedInBookings = bookingsCheck.filter(b => b.status === "checked_in");
+                        if (checkedInBookings.length > 0) {
+                            checkedInBookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            dbStay = checkedInBookings[0];
+                        }
+                        if (!dbStay) {
+                            const confirmedBookings = bookingsCheck.filter(b => b.status === "confirmed");
+                            if (confirmedBookings.length > 0) {
+                                confirmedBookings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                                dbStay = confirmedBookings[0];
+                            }
+                        }
+                    }
+                    if (dbStay) {
+                        if (!hotelId) hotelId = dbStay.hotel_id;
+                        if (!roomNumber) roomNumber = dbStay.room || dbStay.room_name;
+                        if (!hotelName) hotelName = dbStay.hotel_name;
+                    }
+                }
+
+                // Ultimate fallback defaults to prevent null column errors
+                if (!hotelId) hotelId = "INDIA-JAIPUR-RP";
+                if (!roomNumber) roomNumber = "101";
+
+                // Resolve true hotel name from the database if we have a hotelId
+                if (hotelId) {
+                    try {
+                        const { data: hotelRec } = await supabase
+                            .from('hotels')
+                            .select('hotel_name')
+                            .eq('hotel_id', hotelId)
+                            .maybeSingle();
+                        if (hotelRec && hotelRec.hotel_name) {
+                            hotelName = hotelRec.hotel_name;
+                        } else {
+                            const { data: hotelRec2 } = await supabase
+                                .from('hotels')
+                                .select('hotel_name')
+                                .eq('id', hotelId)
+                                .maybeSingle();
+                            if (hotelRec2 && hotelRec2.hotel_name) {
+                                hotelName = hotelRec2.hotel_name;
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("Error resolving hotel name:", err);
+                    }
+                }
+
+                if (!hotelName) hotelName = "Rambagh Palace";
+                
+                const order = {
+                    items: cart.map(i => `[${i.qty}] ${i.name}`).join(', '),
+                    total: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
+                    instructions: document.getElementById('special-instructions').value || 'No special preferences',
+                    room: roomNumber,
+                    hotel_id: hotelId,
+                    hotel_name: hotelName,
+                    restaurant_id: window.currentRestaurant ? window.currentRestaurant.id : null
+                };
+
+                // Immediate persistence
+                let saved = null;
+                const hasPartnerItems = cart.some(cartItem => 
+                    partnerMenuItems.some(pItem => pItem.id === cartItem.id)
+                );
+
+                if (hasPartnerItems) {
+                    const partnerRequest = {
+                        user_id: user.id,
+                        items: cart.map(i => `[${i.qty}] ${i.name}`).join(', '),
+                        total_price: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
+                        status: 'pending',
+                        hotel_id: hotelId,
+                        room: roomNumber,
+                        hotel_name: hotelName,
+                        property_id: hotelId,
+                        restaurant_id: window.currentRestaurant ? window.currentRestaurant.id : null,
+                        guest_email: user.email
+                    };
+
+                    const { data, error } = await supabase
+                        .from('partner_restaurant_requests')
+                        .insert([partnerRequest])
+                        .select();
+
+                    if (error) throw error;
+                    if (data && data.length > 0) {
+                        saved = data[0];
+                    }
+                } else {
+                    saved = await LuxeDB.saveOrder(order);
+                }
+                
+                if (saved) {
+                    // Instant success view transition
+                    document.getElementById('order-id').textContent = '#' + saved.id.slice(0, 8).toUpperCase();
+                    
+                    // Trigger Immediate Clarification
+                    NotificationSystem.add("Your Epicurean Order is confirmed.", "order");
+                    
+                    // Immediate UI Reset
+                    cart = [];
+                    document.getElementById('special-instructions').value = '';
+                    updateCartUI();
+                    
+                    document.getElementById('cart-step').style.display = 'none';
+                    document.getElementById('success-view').style.display = 'block';
+                    
+                    // Refresh tracking silently
+                    pollOrders();
+                } else {
+                    throw new Error("Persistence failed");
+                }
+            } catch (error) {
+                console.error("Rapid Order Error:", error);
+                btn.innerHTML = 'Place Epicurean Order';
+                btn.disabled = false;
+                NotificationSystem.add("We encountered a temporary delay. Please try again.", "error");
+            }
+        }
+
+        async function pollOrders() {
+            const orders = await LuxeDB.getOrders();
+
+            const container = document.getElementById('live-orders-container');
+            const list = document.getElementById('active-orders-list');
+
+            if (orders && orders.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = orders.map(order => {
+                    const statusVal = (order.status || 'pending').toLowerCase();
+                    const statusClass = statusVal === 'preparing' || statusVal === 'prepairing' ? 'badge-popular' : 'badge-veg';
+                    
+                    let cleanItems = order.items || "";
+                    if (cleanItems.includes('🍽️ ITEMS:')) {
+                        cleanItems = cleanItems.split('🍽️ ITEMS:')[1]?.split('📍 DELIVERY:')[0]?.trim();
+                    }
+                    
+                    return `
+                        <div class="food-card" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #D4AF37; background: rgba(255,255,255,0.02);">
+                            <div>
+                                <h4 style="font-family: 'Cinzel'; margin: 0; color: #fff;">Epicurean Selection</h4>
+                                <p style="font-size: 0.8rem; color: #999; margin: 5px 0;">ID: #${order.id.slice(0, 8).toUpperCase()} | Items: ${cleanItems}</p>
+                                <span class="badge-tag ${statusClass}" style="display: inline-block;">${order.status}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="display: block; font-size: 0.7rem; color: #999;">Placed at</span>
+                                <span style="color: #D4AF37; font-weight: 700;">${new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Initialize polling
+        setInterval(pollOrders, 30000); // Update every 30 seconds
+        pollOrders();
+
+        function openChefSelection() {
+            console.log("Opening Chef Selection... Total items:", allMenuItems.length);
+            if (allMenuItems.length === 0) {
+                console.warn("Menu items not loaded yet.");
+                return;
+            }
+            const recommended = allMenuItems.filter(item => {
+                if (item.name === 'Blueberry Cheesecake Royale') return false;
+                const meta = parseMetadata(item.description);
+                return item.is_popular || meta.rating >= 4.8;
+            }).slice(0, 12); 
+
+            console.log("Found recommended items:", recommended.length);
+            const grid = document.getElementById('chef-selection-grid');
+            if (recommended.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Chef is currently preparing new signature dishes. Please check back shortly.</div>';
+            } else {
+                grid.innerHTML = recommended.map(item => renderFoodCard(item)).join('');
+            }
+            document.getElementById('chef-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scroll
+        }
+
+        function closeChefSelection() {
+            document.getElementById('chef-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function openPartnerMenu() {
+            console.log("Opening Partner Menu... Total items:", partnerMenuItems.length);
+            
+            // Set modal title & description dynamically from window.currentRestaurant
+            const modalTitle = document.getElementById('partner-modal-title');
+            const modalDesc = document.getElementById('partner-modal-desc');
+            if (window.currentRestaurant) {
+                if (modalTitle) modalTitle.textContent = `${window.currentRestaurant.restaurant_name} — Menu`;
+                if (modalDesc) modalDesc.textContent = `Bespoke culinary experience in partnership with our properties`;
+            }
+
+            const grid = document.getElementById('partner-menu-grid');
+            if (partnerMenuItems.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">Partner Restaurant is currently preparing signature dishes. Please check back shortly.</div>';
+            } else {
+                grid.innerHTML = partnerMenuItems.map(item => renderFoodCard(item)).join('');
+            }
+            document.getElementById('partner-menu-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scroll
+        }
+
+        function closePartnerMenu() {
+            document.getElementById('partner-menu-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function resetCartModal() {
+            toggleCart();
+            setTimeout(() => {
+                document.getElementById('cart-step').style.display = 'flex';
+                document.getElementById('success-view').style.display = 'none';
+            }, 500);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMenu);
+    </script>
+</body>
+</html>
